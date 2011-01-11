@@ -41,23 +41,42 @@ class MgFormHelper extends FormHelper {
 
 		# placeholder
 		if(!empty($options['default'])) $options['data']['placeholder'] = $options['default'];
-		if(!empty($options['default']) && !empty($options['options'])) {
-			$options['selected'] = $options['default'];
-			unset($options['default']);
-		}
 
 		# generic postProcess
 		$this->_postProcess($name, $options);
 
 		# radio & checkbox support
-		if($options['type'] == 'radio') {
+		if($options['type'] == 'select') {
+			if(!empty($options['default'])) {
+				$options['selected'] = $options['default'];
+				unset($options['default']);
+			}
+		} if($options['type'] == 'radio') {
 			foreach($options['options'] as $for => &$option) $option = $this->label($for, $this->MgHtml->link($option, '#', array('ui' => 'button trigger-radio', 'overlay' => true, 'escape' => false)));
 			$options = array_merge($options, array('escape' => false));
+
+			if(!empty($options['default'])) {
+				//does not work cf. l.1100 formhelper
+				//$options['options'][$options['default']] = array('text' => $options['options'][$options['default']], 'class' => "checked");
+			}
+
 		} else if($options['type'] == 'checkbox') {
 			foreach($options['options'] as $for => &$option) $option = $this->MgHtml->link($option, '#', array('ui' => "button trigger-checkbox", 'overlay' => true, 'escape' => false));
 			if(!empty($options['legend'])) $options['label'] = $options['legend']; unset($options['legend']);
 			$options = array_merge($options, array('escape' => false, 'type' => 'select', 'multiple' => 'checkbox'));
 		}
+
+		/*if((!isset($options['multiple']) || !$options['multiple']) && (!isset($options['default']) || !$options['default'])) {
+
+			if(strpos($name, '.')) $selected = Set::classicExtract($this->view->data, $name);
+			else $selected = Set::classicExtract($this->view->data, $this->Form->model() . '.' . $name);
+
+			if($selected) {
+				if(!is_array($options['label'])) $options['label'] = array('class' => "selected", 'text' => $options['label']);
+				else $options['label']['class'] = (isset($options['label']['class'])?$options['label']['class'].' ':'') . "selected";
+			}
+
+		}*/
 
 		return parent::input($name, $options);
 	}
