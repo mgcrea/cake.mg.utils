@@ -119,6 +119,54 @@ class MgHtmlHelper extends HtmlHelper {
 
 	}
 
+	function div($content = null, $options = array()) {
+
+		$defaults = array(
+			'class' => null,
+			'icon' => null,
+			'text' => null,
+			'data' => array(),
+			'ui' => array(),
+			'before' => null,
+			'after' => null,
+			'escape' => false
+		);
+		$options = array_merge($defaults, $options);
+
+		# generic preProcess
+		$this->_preProcess($content, $options);
+
+		# generic postProcess
+		$this->_postProcess($content, $options);
+
+		return parent::tag('div', $content, $options);
+
+	}
+
+	function ul($content = null, $options = array()) {
+
+		$defaults = array(
+			'class' => null,
+			'icon' => null,
+			'text' => null,
+			'data' => array(),
+			'ui' => array(),
+			'before' => null,
+			'after' => null,
+			'escape' => false
+		);
+		$options = array_merge($defaults, $options);
+
+		# generic preProcess
+		$this->_preProcess($content, $options);
+
+		# generic postProcess
+		$this->_postProcess($content, $options);
+
+		return parent::tag('ul', $content, $options);
+
+	}
+
 	function li($content = null, $options = array()) {
 
 		$defaults = array(
@@ -130,7 +178,8 @@ class MgHtmlHelper extends HtmlHelper {
 			'data' => array(),
 			'ui' => array(),
 			'before' => null,
-			'after' => null
+			'after' => null,
+			'escape' => false
 		);
 		$options = array_merge($defaults, $options);
 
