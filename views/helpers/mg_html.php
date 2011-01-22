@@ -229,6 +229,23 @@ class MgHtmlHelper extends HtmlHelper {
 		return parent::tag('span', (string)$content, $options);
 	}
 
+	function video($content = null, $options) {
+		//if(is_string($options)) $options = array('src' => $options);
+
+		$defaults = array(
+			'type' => "video/mp4",
+			'class' => null,
+			'autoplay' => false,
+			'loop' => false
+		);
+		$options = array_merge($defaults, $options);
+
+		$source = parent::tag('source', null, array('src' => $content, 'type' => $options['type']));
+		unset($options['src'], $options['type']);
+
+		return parent::tag('video', $source, array_merge($options, array('escape' => false)));
+	}
+
 	function _preProcess(&$content = null, &$options = array()) {
 		# ui conversion to array
 		if(is_string($options['ui'])) $options['ui'] = explode(' ', $options['ui']);
