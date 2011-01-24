@@ -108,6 +108,17 @@
 		return null;
 	}
 
+/**
+ * Flush buffers
+ */
+
+	function flush_buffers($output_callback = "ob_gzhandler") {
+		ob_end_flush();
+		ob_flush();
+		flush();
+		if(!@ob_start($output_callback)) @ob_start();
+	}
+
 /****************************
  *** filesystem functions ***
  ****************************/
@@ -179,8 +190,8 @@
  * @param string $x Variable to filter out by extension.
  */
 	function rrmfile($d, $x = null) {
-		if(!file_exists($d)) return true;
-		if(!is_dir($d)  && (($x)?!ereg($x . '$', $d):0)) return unlink($d);
+		if(!file_exists($d) || (($x)?!ereg($x . '$', $d):0)) return true;
+		if(!is_dir($d)) return unlink($d);
 		foreach (array_diff(scandir($d), array('.', '..')) as $f) if(!rrmfile($d . DS . $f, $x)) return false;
 		return true;
 	}
