@@ -121,6 +121,15 @@ class MgHtmlHelper extends HtmlHelper {
 
 	function div($content = null, $options = array()) {
 
+		// retro compatibility if args are class, content, options
+		if(!is_array($options)) {
+			$args = func_get_args();
+			$content = $args[1];
+			$options = array('class' => $args[0]);
+			if(!empty($args[2])) $options = array_merge($options, $args[2]);
+			//debug($args); exit;
+		}
+
 		$defaults = array(
 			'class' => null,
 			'icon' => null,
