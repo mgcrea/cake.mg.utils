@@ -190,7 +190,7 @@
  * @param string $x Variable to filter out by extension.
  */
 	function rrmfile($d, $x = null) {
-		if(!file_exists($d) || (($x)?!ereg($x . '$', $d):0)) return true;
+		if(!file_exists($d) || (($x)?preg_match('/' . $x . '$/', $d):0)) return true;
 		if(!is_dir($d)) return unlink($d);
 		foreach (array_diff(scandir($d), array('.', '..')) as $f) if(!rrmfile($d . DS . $f, $x)) return false;
 		return true;
