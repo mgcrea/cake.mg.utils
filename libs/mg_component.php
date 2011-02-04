@@ -18,8 +18,6 @@ class MgComponent extends Object {
 		// loading $this->uses
 		foreach($this->uses as $model) {
 			$this->loadModel($model);
-			list($subPlugin, $subModel) = pluginSplit($model);
-			$this->{$subModel} = $this->controller->{$subModel};
 		}
 	}
 
@@ -35,7 +33,33 @@ class MgComponent extends Object {
  * @access public
  */
 	function loadModel($model = null) {
-		return $this->controller->loadModel($model);
+		if($this->controller->loadModel($model)) {
+			list($plugin, $model) = pluginSplit($model);
+			$this->{$model} =& $this->controller->{$model};
+			return true;
+		}
+		return false;
+	}
+
+/**
+ * Connects to specified database
+ *
+ * @param array $config Server config to use {datasource:?, database:?}
+ * @return array db->config on success, false on failure
+ * @access public
+ */
+	function dbConnect($config = array()) {
+		ClassRegistry::init('ConnectionManager');
+		$db =& ConnectionManager::getDataSource($config['datasource']);
+		$db->disconnect();
+		$db->config['database'] = $config['database'];
+		$db->config['persistent'] = false;
+		$db->connect();
+		if(!$db->isConnected()) {
+			$this->error('!$db->isConnected()');
+			return false;
+		}
+		return $db->config;
 	}
 
 /***

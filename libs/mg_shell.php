@@ -22,6 +22,24 @@ class MgShell extends Shell {
  **/
 
 /**
+ * Setup given shell
+ *
+ * @param string $model Model to load
+ * @return boolean true on success, false on failure
+ * @access public
+ */
+	function setup($shell = null, $task = null, $options = array()) {
+		Configure::write('debug', 2);
+
+		$console_path = cygpath(APP, true);
+		$shell = $task ? $shell . ' ' . $task : $shell;
+		$job = "${console_path}cake $shell";
+		$this->TaskHandler->add(Inflector::camelize($shell), $job, $options);
+
+		debug($this->TaskHandler->index());
+	}
+
+/**
  * Loads given model
  *
  * @param string $model Model to load
