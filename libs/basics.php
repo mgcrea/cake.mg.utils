@@ -197,6 +197,17 @@
 	}
 
 /**
+ * Get file lines
+ *
+ * @param string $d Path to delete.
+ * @param string $x Variable to filter out by extension.
+ */
+	function wcl($f) {
+		exec("wc -l $f", $r);
+		return (int)strstr(current($r), ' ', true);
+	}
+
+/**
  * Copy file or folder from source to destination, it can do
  * recursive copy as well and is very smart
  * It recursively creates the dest file or directory path if there weren't exists

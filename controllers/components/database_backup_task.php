@@ -5,8 +5,17 @@ App::import('Lib', 'MgComponent', array('plugin' => 'MgUtils'));
 class DatabaseBackupTaskComponent extends MgComponent {
 
 	var $name = 'DatabaseBackupTask';
+	var $plugin = 'MgUtils';
+
 	var $uses = array();
 	var $components = array();
+
+	var $config = array(
+		'server_name' => SERVER_NAME,
+		'mysqldump' => 'mysqldump',
+		'cygwin' => 'C:\\cygwin',
+		'debug' => true
+	);
 
 /***
  ** component methods
@@ -17,7 +26,12 @@ class DatabaseBackupTaskComponent extends MgComponent {
 
 		$status = array();
 		foreach(Configure::read('Servers') as $serverName => $serverConfig) {
+			$this->config['server_name'] = $serverName;
+			// load serverConfig
 			$serverConfig = array_merge(Configure::read('ServerDefaults'), $serverConfig);
+			// load task options from serverConfig
+			if(!empty($serverConfig['workers'][$this->plugin . '.' . $this->name])) $this->config = array_merge($this->config, $serverConfig['workers'][$this->plugin . '.' . $this->name]);
+
 			$dbConfig = $this->dbConnect($serverConfig);
 			$result = $this->_databaseBackupTask($dbConfig);
 			$status[$serverName] = $result;
@@ -32,10 +46,14 @@ class DatabaseBackupTaskComponent extends MgComponent {
 		$backupFolder = TMP . 'sql';
 		if(!is_dir($backupFolder)) rmkdir($backupFolder);
 
-		$backupName = SERVER_NAME . '-`date +\%Y\%m\%d-\%H\%M\%S`.sql.gz';
+		$backupName = $this->config['server_name'] . '-`date +\%Y\%m\%d-\%H\%M\%S`.sql.gz';
 		$backupPath = $backupFolder . DS . $backupName;
 
-		$job = 'mysqldump --opt -u' . $dbConfig['login'] . ' -p' . $dbConfig['password'] . ' ' . $dbConfig['database'] . ' --single-transaction | gzip > ' . $backupPath;
+		if(IS_WIN) {
+			$job = $this->config['cygwin'] . '\\bin\\bash.exe -c "' . cygpath($this->config['mysqldump']) . ' --opt -u' . $dbConfig['login'] . ' -p' . $dbConfig['password'] . ' ' . $dbConfig['database'] . ' --single-transaction | gzip > ' . cygpath($backupPath) . '"';
+		} else {
+			$job = $this->config['mysqldump'] . ' --opt -u' . $dbConfig['login'] . ' -p' . $dbConfig['password'] . ' ' . $dbConfig['database'] . ' --single-transaction | gzip > ' . $backupPath;
+		}
 
 		return proc_exec($job);
 	}

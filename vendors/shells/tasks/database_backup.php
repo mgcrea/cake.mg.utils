@@ -5,8 +5,11 @@ App::import('Lib', 'MgShell', array('plugin' => 'MgUtils'));
 class DatabaseBackupTask extends MgShell {
 
 	var $name = 'DatabaseBackup';
+	var $plugin = 'MgUtils';
 	var $components = array('MgUtils.DatabaseBackupTask', 'MgWorkers.TaskHandler');
 	var $uses = array();
+
+	var $setup = array('m' => 0, 'h' => 0);
 
 	function execute() {
 		self::construct();
@@ -27,7 +30,7 @@ class DatabaseBackupTask extends MgShell {
  */
 	function setup() {
 		self::construct();
-		parent::setup('mg_utils', Inflector::underscore($this->name), array('m' => 0, 'h' => 0));
+		parent::setup(Inflector::underscore($this->plugin), Inflector::underscore($this->name), $this->setup);
 	}
 
 }
