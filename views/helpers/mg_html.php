@@ -178,6 +178,9 @@ class MgHtmlHelper extends HtmlHelper {
 
 	function li($content = null, $options = array()) {
 
+		// $options as text is a class option
+		if(!is_array($options)) $options = array('class' => $options);
+
 		$defaults = array(
 			'class' => null,
 			'icon' => null,
@@ -192,7 +195,7 @@ class MgHtmlHelper extends HtmlHelper {
 		);
 		$options = array_merge($defaults, $options);
 
-		# generic preProcess
+		// generic preProcess
 		$this->_preProcess($content, $options);
 
 		if(!empty($options['action'])) {
@@ -200,7 +203,7 @@ class MgHtmlHelper extends HtmlHelper {
 		}
 		unset($options['link'], $options['action']);
 
-		# generic postProcess
+		// generic postProcess
 		$this->_postProcess($content, $options);
 
 		return parent::tag('li', $content, $options);
