@@ -211,7 +211,10 @@ class MgHtmlHelper extends HtmlHelper {
 
 	function li($content = null, $options = array()) {
 
-		# generic preProcess
+		// $options as text is a class option
+		if(!is_array($options)) $options = array('class' => $options);
+
+		// generic preProcess
 		$this->_preProcess($content, $options);
 
 		$defaults = array(
@@ -233,7 +236,7 @@ class MgHtmlHelper extends HtmlHelper {
 		}
 		unset($options['link'], $options['action']);
 
-		# generic postProcess
+		// generic postProcess
 		$this->_postProcess($content, $options);
 
 		return parent::tag('li', $content, $options);
