@@ -293,6 +293,24 @@
 		return $result;
 	}
 
+	function write_tmp($c = null, $post = null, $pre = "tmp") {
+		$f = tempnam(CACHE, $pre);
+		$h = fopen($f, "w");
+		fwrite($h, $c);
+		//fseek($f, 0);
+		fclose($h);
+		//file_put_contents($f, $post);
+		if($post) @rename($f, $f . $post);
+		return $f . $post;
+	}
+
+	function read_tmp($f) {
+		$c = fread($f, 1024);
+		fclose($f);
+		return $f;
+		//return file_get_contents($f);
+	}
+
 /***********************
  *** array functions ***
  ***********************/
@@ -528,8 +546,13 @@ function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $pa
 
 			} else {
 				$key_element = $dom->createElement($key);
-				$parent->appendChild($key_element);
-				$key_element->nodeValue = $val;
+				$element = $parent->appendChild($key_element);
+
+				if(preg_match('/[&<>]/i', $val)) {
+					$element->appendChild($dom->createCDATASection($val));
+				} else {
+					$key_element->nodeValue = $val;
+				}
 			}
 
 		}

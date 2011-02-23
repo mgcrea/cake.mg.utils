@@ -5,7 +5,7 @@ App::import('Lib', 'MgShell', array('plugin' => 'MgUtils'));
 class MgUtilsShell extends MgShell {
 
 	var $name = 'MgUtils';
-	var $tasks = array('DatabaseBackup');
+	var $tasks = array('DatabaseBackup', 'LogsArchive');
 
 /***
  ** component methods

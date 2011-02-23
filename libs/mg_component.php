@@ -15,6 +15,9 @@ class MgComponent extends Object {
 		$this->passedArgs =& $this->controller->passedArgs;
 		$this->action =& $this->controller->action;
 
+		$this->RequestHandler =& $this->controller->RequestHandler;
+		$this->Auth =& $this->controller->Auth;
+
 		// loading $this->uses
 		foreach($this->uses as $model) {
 			$this->loadModel($model);
