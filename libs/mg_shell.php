@@ -8,6 +8,14 @@ class MgShell extends Shell {
 	var $tasks = array();
 	var $uses = array();
 
+/**
+ * Contains variables to be handed to the view.
+ *
+ * @var array
+ * @access public
+ */
+	var $viewVars = array();
+
 	function construct() {
 		// loading $this->components
 		if(!empty($this->components)) {
@@ -34,6 +42,7 @@ class MgShell extends Shell {
 		$console_path = cygpath(APP, true);
 		$shell = $task ? $shell . ' ' . $task : $shell;
 		$job = "${console_path}cake $shell";
+		debug(compact('shell', 'job', 'options'));
 		$this->TaskHandler->add(Inflector::camelize($shell), $job, $options);
 
 		debug($this->TaskHandler->index());
@@ -71,6 +80,31 @@ class MgShell extends Shell {
 			}
 		}
 		return true;
+	}
+
+/**
+ * Saves a variable for use inside a view template.
+ *
+ * @param mixed $one A string or an array of data.
+ * @param mixed $two Value in case $one is a string (which then works as the key).
+ *   Unused if $one is an associative array, otherwise serves as the values to $one's keys.
+ * @return void
+ * @access public
+ * @link http://book.cakephp.org/view/979/set
+ */
+	function set($one, $two = null) {
+		$data = array();
+
+		if (is_array($one)) {
+			if (is_array($two)) {
+				$data = array_combine($one, $two);
+			} else {
+				$data = $one;
+			}
+		} else {
+			$data = array($one => $two);
+		}
+		$this->viewVars = $data + $this->viewVars;
 	}
 
 /***
