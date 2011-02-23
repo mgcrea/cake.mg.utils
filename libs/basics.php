@@ -184,10 +184,26 @@
 	}
 
 /**
+ * List directory recursively. optionally filtered by extension
+ *
+ * @param string $d Path to analyse.
+ * @param string $x Variable to filter results by extension.
+ */
+
+	function rlsfile($d, $x = null) {
+		$l = array();
+		foreach (array_diff(scandir($d), array('.', '..')) as $f) {
+			if(is_dir($d . DS . $f)) $l += rlsfile($d . DS . $f, $x);
+			elseif(is_file($d . DS . $f) && (($x)?ereg($x.'$',$f):1)) $l[] = $f;
+		}
+		return $l;
+	}
+
+/**
  * Clear directory recursively. optionally preserving base directory
  *
  * @param string $d Path to delete.
- * @param string $x Variable to filter out by extension.
+ * @param string $x Variable to filter results by extension.
  */
 	function rrmfile($d, $x = null) {
 		if(!file_exists($d) || (($x)?preg_match('/' . $x . '$/', $d):0)) return true;

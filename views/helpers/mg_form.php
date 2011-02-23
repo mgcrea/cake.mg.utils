@@ -81,6 +81,10 @@ class MgFormHelper extends FormHelper {
 		return parent::input($name, $options);
 	}
 
+	function _input($name = null, $options = array()) {
+		return parent::input($name, $options);
+	}
+
 	function label($for = null, $content = null, $options = array()) {
 		if(is_string($options)) $options = array('class' => $options);
 
