@@ -184,18 +184,16 @@
 	}
 
 /**
- * List directory recursively. optionally filtered by extension
+ * List files recursively. optionally filtered by extension
  *
  * @param string $d Path to analyse.
  * @param string $x Variable to filter results by extension.
  */
 
-	function rlsfile($d, $x = null) {
+	function rlsfile($d, $x = null, $p = null) {
 		$l = array();
-		foreach (array_diff(scandir($d), array('.', '..')) as $f) {
-			if(is_dir($d . DS . $f)) $l += rlsfile($d . DS . $f, $x);
-			elseif(is_file($d . DS . $f) && (($x)?ereg($x.'$',$f):1)) $l[] = $f;
-		}
+		if(is_file($d) && (($x)?ereg($x.'$',$d):1)) $l[] = $p . '/' . substr(strrchr($d, DS), 1);
+		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfile($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
 		return $l;
 	}
 
@@ -367,27 +365,18 @@
 /**
  * Converts an object to an array
  *
- * @param array $hastack
- * @param string $expression
- * @return string Key found
+ * @param object $data
  */
-	function array_from_object($object) {
-		if(!is_object($object) && !is_array($object)) {
-			return $object;
-		}
-		if(is_object($object)) {
-			$object = get_object_vars( $object );
-		}
-		return array_map('array_from_object', $object);
-	}
-
-	// From object to array.
 	function to_array($data) {
 		if (is_object($data)) $data = get_object_vars($data);
 		return is_array($data) ? array_map(__FUNCTION__, $data) : $data;
 	}
 
-	// From array to object.
+/**
+ * Converts an array to an object
+ *
+ * @param array $data
+ */
 	function to_object($data) {
 		return is_array($data) ? (object) array_map(__FUNCTION__, $data) : $data;
 	}
@@ -441,9 +430,7 @@
  * @return string guid
  */
 	function create_guid() {
-		 if (function_exists('com_create_guid') === true) {
-			return strtolower(trim(com_create_guid(), '{}'));
-		}
+		if (function_exists('com_create_guid') === true) return strtolower(trim(com_create_guid(), '{}'));
 		return strtolower(sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)));
 	}
 

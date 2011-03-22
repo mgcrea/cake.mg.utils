@@ -135,6 +135,7 @@ class MgFormHelper extends FormHelper {
 
 		# surcharge div class with type (text, radio, etc.)
 		$options['div'] = array('class' => 'input ' . $options['type'] . (!empty($options['div']) ? ' ' . $options['div'] : null));
+		if($options['type'] == 'password') $options['div']['class'] .= ' text';
 
 		# markup injection handler
 		//$content = $options['before'] . $content . $options['after'];
