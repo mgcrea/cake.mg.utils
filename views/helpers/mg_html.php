@@ -16,6 +16,7 @@ class MgHtmlHelper extends HtmlHelper {
 			'class' => null,
 			'icon' => null,
 			'text' => null,
+			'icon-right' => null,
 			'overlay' => false,
 			'action' => array(),
 			'escape' => false,
@@ -236,6 +237,27 @@ class MgHtmlHelper extends HtmlHelper {
 		unset($options['icon'], $options['text']);
 
 		return parent::tag('span', (string)$content, $options);
+	}
+
+	function h1($content = null, $options = null) {
+		// generic preProcess
+		$this->_preProcess($content, $options);
+
+		return parent::tag('h1', $content, $options);
+	}
+
+	function h2($content = null, $options = null) {
+		// generic preProcess
+		$this->_preProcess($content, $options);
+
+		return parent::tag('h2', $content, $options);
+	}
+
+	function h3($content = null, $options = null) {
+		// generic preProcess
+		$this->_preProcess($content, $options);
+
+		return parent::tag('h3', $content, $options);
 	}
 
 	function video($content = null, $options) {
