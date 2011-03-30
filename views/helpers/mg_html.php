@@ -10,9 +10,6 @@ class MgHtmlHelper extends HtmlHelper {
 
 	function link($content = null, $action = array(), $options = array()) {
 
-		# generic preProcess
-		$this->_preProcess($content, $options);
-
 		$defaults = array(
 			'role' => 'button',
 			'aria-disabled' => 'false',
@@ -28,6 +25,9 @@ class MgHtmlHelper extends HtmlHelper {
 			'after' => null
 		);
 		$options = array_merge($defaults, $options);
+
+		# generic preProcess
+		$this->_preProcess($content, $options);
 
 		# overlay handler
 		if(!empty($options['overlay'])) {
@@ -130,8 +130,29 @@ class MgHtmlHelper extends HtmlHelper {
 			//debug($args); exit;
 		}
 
+		$defaults = array(
+			'class' => null,
+			'icon' => null,
+			'text' => null,
+			'data' => array(),
+			'ui' => array(),
+			'before' => null,
+			'after' => null,
+			'escape' => false
+		);
+		$options = array_merge($defaults, $options);
+
 		# generic preProcess
 		$this->_preProcess($content, $options);
+
+		# generic postProcess
+		$this->_postProcess($content, $options);
+
+		return parent::tag('div', $content, $options);
+
+	}
+
+	function ul($content = null, $options = array()) {
 
 		$defaults = array(
 			'class' => null,
@@ -145,17 +166,49 @@ class MgHtmlHelper extends HtmlHelper {
 		);
 		$options = array_merge($defaults, $options);
 
+		# generic preProcess
+		$this->_preProcess($content, $options);
+
 		# generic postProcess
 		$this->_postProcess($content, $options);
 
-		return parent::tag('div', $content, $options);
+		return parent::tag('ul', $content, $options);
+
+	}
+
+	function li($content = null, $options = array()) {
+
+		$defaults = array(
+			'class' => null,
+			'icon' => null,
+			'text' => null,
+			'action' => array(),
+			'link' => array(),
+			'data' => array(),
+			'ui' => array(),
+			'before' => null,
+			'after' => null,
+			'escape' => false
+		);
+		$options = array_merge($defaults, $options);
+
+		# generic preProcess
+		$this->_preProcess($content, $options);
+
+		if(!empty($options['action'])) {
+			$content = $this->link($content, $options['action'], array_merge($options['link'], array('escape' => false)));
+		}
+		unset($options['link'], $options['action']);
+
+		# generic postProcess
+		$this->_postProcess($content, $options);
+
+		return parent::tag('li', $content, $options);
 
 	}
 
 	function span($content = null, $options = array()) {
-
-		# generic preProcess
-		$this->_preProcess($content, $options);
+		if(is_string($options)) $options = array('class' => $options);
 
 		$defaults = array(
 			'icon' => null,
@@ -185,66 +238,6 @@ class MgHtmlHelper extends HtmlHelper {
 		return parent::tag('span', (string)$content, $options);
 	}
 
-	function ul($content = null, $options = array()) {
-
-		# generic preProcess
-		$this->_preProcess($content, $options);
-
-		$defaults = array(
-			'class' => null,
-			'icon' => null,
-			'text' => null,
-			'data' => array(),
-			'ui' => array(),
-			'before' => null,
-			'after' => null,
-			'escape' => false
-		);
-		$options = array_merge($defaults, $options);
-
-		# generic postProcess
-		$this->_postProcess($content, $options);
-
-		return parent::tag('ul', $content, $options);
-
-	}
-
-	function li($content = null, $options = array()) {
-
-		// $options as text is a class option
-		if(!is_array($options)) $options = array('class' => $options);
-
-		// generic preProcess
-		$this->_preProcess($content, $options);
-
-		$defaults = array(
-			'class' => null,
-			'icon' => null,
-			'text' => null,
-			'action' => array(),
-			'link' => array(),
-			'data' => array(),
-			'ui' => array(),
-			'before' => null,
-			'after' => null,
-			'escape' => false
-		);
-		$options = array_merge($defaults, $options);
-
-		if(!empty($options['action'])) {
-			$content = $this->link($content, $options['action'], array_merge($options['link'], array('escape' => false)));
-		}
-		unset($options['link'], $options['action']);
-
-		// generic postProcess
-		$this->_postProcess($content, $options);
-
-		return parent::tag('li', $content, $options);
-
-	}
-
-
-
 	function video($content = null, $options) {
 		//if(is_string($options)) $options = array('src' => $options);
 
@@ -263,9 +256,8 @@ class MgHtmlHelper extends HtmlHelper {
 	}
 
 	function _preProcess(&$content = null, &$options = array()) {
-		if(is_string($options)) $options = array('class' => $options);
 		# ui conversion to array
-		if(!empty($options['ui']) && is_string($options['ui'])) $options['ui'] = explode(' ', $options['ui']);
+		if(is_string($options['ui'])) $options['ui'] = explode(' ', $options['ui']);
 	}
 
 	function _postProcess(&$content = null, &$options = array()) {

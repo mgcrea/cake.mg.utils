@@ -52,9 +52,13 @@ class MgComponent extends Object {
  * @access public
  */
 	function dbConnect($config = array()) {
-		ClassRegistry::init('ConnectionManager');
+		ClassRegistry::init('ConnectionManager'); debug($config['datasource']);
+		//$dbInstance =& ConnectionManager::getInstance();
+		//$dbInstance->config->{$config['datasource']}['database'] = $config['database'];
+
 		$db =& ConnectionManager::getDataSource($config['datasource']);
 		$db->disconnect();
+		$db->cacheSources = false;
 		$db->config['database'] = $config['database'];
 		$db->config['persistent'] = false;
 		$db->connect();

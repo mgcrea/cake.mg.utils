@@ -26,7 +26,7 @@ class LessHelper extends Helper {
 		App::import('Vendor', 'lessc', array('file' => 'lessphp' . DS . 'lessc.inc.php'));
 
 		$cssDest = $options['dest'] . $options['file'] . '.css';
-		if(is_file($cssDest)) unlink($cssDest);
+		if(is_file($cssDest)) @unlink($cssDest);
 
 		foreach($sourceFiles as $sourceFile) {
 			if(!preg_match('/(.css|.less)$/is', $sourceFile)) $sourceFile .= '.less';

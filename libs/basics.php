@@ -184,26 +184,10 @@
 	}
 
 /**
- * List directory recursively. optionally filtered by extension
- *
- * @param string $d Path to analyse.
- * @param string $x Variable to filter results by extension.
- */
-
-	function rlsfile($d, $x = null) {
-		$l = array();
-		foreach (array_diff(scandir($d), array('.', '..')) as $f) {
-			if(is_dir($d . DS . $f)) $l += rlsfile($d . DS . $f, $x);
-			elseif(is_file($d . DS . $f) && (($x)?ereg($x.'$',$f):1)) $l[] = $f;
-		}
-		return $l;
-	}
-
-/**
  * Clear directory recursively. optionally preserving base directory
  *
  * @param string $d Path to delete.
- * @param string $x Variable to filter results by extension.
+ * @param string $x Variable to filter out by extension.
  */
 	function rrmfile($d, $x = null) {
 		if(!file_exists($d) || (($x)?preg_match('/' . $x . '$/', $d):0)) return true;
@@ -309,6 +293,10 @@
 		return $result;
 	}
 
+/**
+ * Writes in a newly created temporary file
+ *
+ */
 	function write_tmp($c = null, $post = null, $pre = "tmp") {
 		$f = tempnam(CACHE, $pre);
 		$h = fopen($f, "w");
@@ -623,6 +611,127 @@ function tail2($file, $num_to_get=1000)
   }
   fclose($fp);
   return $data;
+}
+
+/**********************
+ *** curl functions ***
+ **********************/
+
+function curl_ftp_list2($url, $timeout = 10) {
+	$ch = curl_init($url);
+	curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	curl_setopt($ch, CURLOPT_FTPLISTONLY, TRUE);
+	$ret = curl_exec($ch);
+	curl_close($ch);
+	if ($ret === FALSE) {
+		return FALSE;
+	} else {
+		return preg_split('/[\r\n]+/', $ret, -1, PREG_SPLIT_NO_EMPTY);
+	}
+}
+
+function curl_ftp_list($url, $timeout = 10) {
+	$ch = curl_init($url);
+	curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
+	$ret = curl_exec($ch);
+	echo curl_error($ch);
+	curl_close($ch);
+	if ($ret === FALSE) {
+		return FALSE;
+	} else {
+		$fichiers = array();
+		$nbFichiers = 0;
+		if (preg_match_all('/([-dl])([rwxst-]{9})[ ]+([0-9]+)[ ]+([^ ]+)[ ]+(.+)[ ]+([0-9]+)[ ]+([a-zA-Z]+[ ]+[0-9]+)[ ]+([0-9:]+)[ ]+(.*)/', $ret, $m, PREG_SET_ORDER)) {
+			foreach ($m as $f) {
+				$fichiers[$nbFichiers] = array();
+				$fichiers[$nbFichiers]['dir']         = $f[1] == 'd';  // RÃ©pertoire ?
+				$fichiers[$nbFichiers]['filename']    = $f[9];         // Nom
+				$fichiers[$nbFichiers]['size']        = $f[6];         // Taille
+				$fichiers[$nbFichiers]['owner']       = $f[4];         // PropriÃ©taire
+				$fichiers[$nbFichiers]['group']       = $f[5];         // Groupe
+				$fichiers[$nbFichiers]['permissions'] = $f[2];         // Permissions
+				$fichiers[$nbFichiers]['mtime']       = "$f[7] $f[8]"; // Date de derniÃ¨re modification
+				$nbFichiers++;
+			}
+		}
+		return $fichiers;
+	}
+}
+
+function curl_ftp_put($url, $nom_local, $mode_ascii = FALSE, $chmod = FALSE) {
+	$ret = FALSE;
+
+	if (is_file($nom_local)) {
+		$fp = fopen($nom_local, 'r');
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_INFILE, $fp);
+		curl_setopt($ch, CURLOPT_INFILESIZE, filesize($nom_local));
+		curl_setopt($ch, CURLOPT_UPLOAD, TRUE);
+		if ($mode_ascii) {
+			curl_setopt($ch, CURLOPT_TRANSFERTEXT, TRUE);
+		}
+		if ($chmod) {
+			$path = parse_url($url, PHP_URL_PATH);
+			curl_setopt($ch, CURLOPT_POSTQUOTE, array("SITE CHMOD $chmod $path"));
+		}
+		$ret = curl_exec($ch);
+		curl_close($ch);
+		fclose($fp);
+	}
+
+	return $ret;
+}
+
+function ftp_curl_get($url, $sortie, $timeout = 10) {
+	if ($fp = fopen($sortie, 'w')) {
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_FILE, $fp);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+		$ret = curl_exec($ch);
+		curl_close($ch);
+		fclose($fp);
+		return $ret;
+	}
+	return FALSE;
+}
+
+function http_curl_get($url, $sortie, $timeout = 10) {
+	$useragent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10";
+	if ($fp = fopen($sortie, 'w')) {
+		$ch = curl_init($url);
+
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+
+		curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+
+		curl_setopt($ch, CURLOPT_FILE, $fp);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+
+		curl_setopt_array($ch, array(
+		));
+
+		$ret = curl_exec($ch);
+
+		curl_close($ch);
+		fclose($fp);
+		return $ret;
+	}
+	return FALSE;
 }
 
 ?>
