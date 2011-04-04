@@ -192,6 +192,20 @@
 
 	function rlsfile($d, $x = null, $p = null) {
 		$l = array();
+		if(is_file($d) && (($x)?ereg($x.'$',$d):1)) $l[] = (substr(strchr($p, '/'), 1) ? substr(strchr($p, '/'), 1) . '/' : null) . substr(strrchr($d, DS), 1);
+		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfile($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
+		return $l;
+	}
+
+/**
+ * List files recursively. optionally filtered by extension
+ *
+ * @param string $d Path to analyse.
+ * @param string $x Variable to filter results by extension.
+ */
+
+	function rlsfiledir($d, $x = null, $p = null) {
+		$l = array();
 		if(is_file($d) && (($x)?ereg($x.'$',$d):1)) $l[] = $p . '/' . substr(strrchr($d, DS), 1);
 		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfile($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
 		return $l;
@@ -469,6 +483,71 @@
 		}
 		return false;
 	}
+
+	function proc_live($cmd) {
+		$outpipe = '/tmp/outpipe';
+		$inpipe = '/tmp/inpipe';
+		
+		posix_mkfifo($inpipe, 0600);
+		posix_mkfifo($outpipe, 0600);
+
+		$pid = pcntl_fork();
+
+		//parent
+		if($pid) {
+
+			/*
+			$in = fopen($inpipe, 'w');
+			fwrite($in, "A message for the inpipe reader\n");
+			fclose($in);
+			*/
+
+			$out = fopen($outpipe, 'r');
+			while(!feof($out)) {
+			echo "From out pipe: " . fgets($out) . PHP_EOL;
+			}
+			fclose($out);
+
+			pcntl_waitpid($pid, $status);
+
+			if(pcntl_wifexited($status)) {
+				echo "Reliable exit code: " . pcntl_wexitstatus($status) . PHP_EOL;
+			}
+
+			@unlink($outpipe);
+			@unlink($inpipe);
+		}
+
+		//child
+		else {
+
+			//$cmd .= " > $outpipe 2>&1 && exit 12";
+
+			//parent
+			if($pid = pcntl_fork()) {
+				//pcntl_exec('/bin/sh', array('-c', "printf 'parent exiting' >> $outpipe 2>&1 && exit 12"));
+			}
+
+			//child
+			else {
+				$cmd .= ";printf 'child exiting' >> $outpipe 2>&1;exit 1";
+				pcntl_exec('/bin/sh', array('-c', $cmd));
+
+				//pcntl_exec('/bin/sh', array('-c', "printf 'From in pipe: '; cat $inpipe"));
+			}
+		}
+	}
+
+/**
+ * Format bytes
+ *
+ * @param string $subject
+ */
+function format_bytes($size) {
+	$units = array(' B', ' KB', ' MB', ' GB', ' TB');
+	for ($i = 0; $size >= 1024 && $i < 4; $i++) $size /= 1024;
+	return round($size, 2).$units[$i];
+}
 
 /**********************
  *** date functions ***

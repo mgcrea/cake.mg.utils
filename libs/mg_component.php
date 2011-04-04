@@ -52,21 +52,45 @@ class MgComponent extends Object {
  * @access public
  */
 	function dbConnect($config = array()) {
-		ClassRegistry::init('ConnectionManager'); debug($config['datasource']);
-		//$dbInstance =& ConnectionManager::getInstance();
-		//$dbInstance->config->{$config['datasource']}['database'] = $config['database'];
+		ClassRegistry::init('ConnectionManager');
 
-		$db =& ConnectionManager::getDataSource($config['datasource']);
+		/*$cm =& ConnectionManager::getInstance();
+		$db =& $cm->getDataSource($config['datasource']);
+		$db->setConfig(array('database' => $config['database'], 'persistent' => false));
 		$db->disconnect();
-		$db->cacheSources = false;
-		$db->config['database'] = $config['database'];
-		$db->config['persistent'] = false;
-		$db->connect();
-		if(!$db->isConnected()) {
-			$this->error('!$db->isConnected()');
-			return false;
-		}
-		return $db->config;
+		return $db->connect();*/
+
+		$nds = $config['datasource'] . '_' . $config['database'];
+		$db =& ConnectionManager::getDataSource($config['datasource']);
+		$db->setConfig(array('name' => $nds, 'database' => $config['database'], 'persistent' => false));
+		if($ds = ConnectionManager::create($nds, $db->config)) return $db->config;
+		return false;
+
+	}
+
+/**
+ * Returns servers array
+ *
+ * @return array serverConfig
+ * @access public
+ */
+	function servers() {
+
+		Configure::load('servers');
+		Configure::load('defaults');
+
+		$servers = array_diff_key(Configure::read('Servers'), array('console' => null));
+		foreach($servers as $serverName => &$serverConfig) {
+			// load serverConfig
+			$serverConfig = array_merge(Configure::read('ServerDefaults'), $serverConfig);
+			// load task options from serverConfig
+			if(!empty($serverConfig['workers'][(!empty($this->plugin)? $this->plugin . '.' : null) . $this->name])) $this->config = array_merge($this->config, $serverConfig['workers'][$this->plugin . '.' . $this->name]);
+		} unset($serverConfig);
+
+		Configure::delete('Servers');
+		Configure::delete('ServerDefaults');
+
+		return $servers;
 	}
 
 /***
@@ -78,16 +102,19 @@ class MgComponent extends Object {
 		if(!$log) $log = 'console' . DS . date("Ymd") . '-' . Inflector::underscore($this->name);
 
 		if(is_array($info)) {
-			if($data) $log = $data;
+			if(is_string($data)) $log = $data;
 			$info = str_replace("\n", "\n\t", substr(print_r($info, true), 0, -1));
 		} elseif(is_array($data) || is_object($data)) {
-			$info = $info . "\n" . str_replace("\n", "\n\t", substr(print_r($data, true), 0, -1));
+			$info .= "\n\t" . str_replace("\n", "\n\t", substr(print_r($data, true), 0, -1));
+		} elseif(is_string($data)) {
+			$info .= "\n\t" . str_replace("\n", "\n\t", substr(print_r($data, true), 0, -1));
 		}
 
 		return parent::log($info, $log);
 	}
 
-	function error($error_msg, $error_type = E_USER_NOTICE) {
+	function error($error_msg, $error_type = E_USER_NOTICE, $log = null) {
+		if(!$log) $log = 'console' . DS . SERVER_NAME . '-' . $types[$error_type];
 
 		$types = array(E_USER_ERROR => "error", E_USER_WARNING => "warning", E_USER_NOTICE => "notice");
 

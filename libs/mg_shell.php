@@ -31,6 +31,11 @@ class MgShell extends Shell {
 	function setup($shell = null, $task = null, $options = array()) {
 		Configure::write('debug', 2);
 
+		if(is_array($task)) {
+			$options = $task;
+			$task = null;
+		}
+
 		$console_path = cygpath(APP, true);
 		$shell = $task ? $shell . ' ' . $task : $shell;
 		$job = "${console_path}cake $shell";
@@ -59,17 +64,22 @@ class MgShell extends Shell {
  * @return boolean true on success, false on failure
  * @access public
  */
-	function loadComponent($component = null) {
+	function loadComponent($component = null, &$context = null) {
+		if(!$context) $context =& $this;
+
 		App::import('Component', $component);
 		list($plugin, $component) = pluginSplit($component);
 		$componentClass = $component . 'Component';
-		$this->{$component} = new $componentClass;
-		$this->{$component}->initialize($this);
+
+		$context->{$component} = new $componentClass;
+		$context->{$component}->initialize($this);
+
 		if(!empty($this->{$component}->components)) {
 			foreach($this->{$component}->components as $subComponent) {
-				$this->loadComponent($subComponent);
+				$this->loadComponent($subComponent, $this->{$component});
 			}
 		}
+
 		return true;
 	}
 
@@ -91,11 +101,11 @@ class MgShell extends Shell {
 		return parent::log($info, $log);
 	}
 
-	function error($error_msg, $error_type = E_USER_NOTICE) {
+	function error($error_msg, $error_type = E_USER_NOTICE, $log = null) {
+		if(!$log) $log = 'console' . DS . SERVER_NAME . '-' . $types[$error_type];
 
 		$types = array(E_USER_ERROR => "error", E_USER_WARNING => "warning", E_USER_NOTICE => "notice");
 
-		$log = SERVER_NAME . DS . SERVER_NAME . '-' . $types[$error_type];
 		$hr = "\n\t" . "******** " . strtoupper($types[$error_type]) . " ********" . "\n\t";
 
 		parent::log(SERVER_NAME . ' ~ ' . __CLASS__ . ' ~ ' . $error_msg, 'error');
