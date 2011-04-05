@@ -487,7 +487,7 @@
 	function proc_live($cmd) {
 		$outpipe = '/tmp/outpipe';
 		$inpipe = '/tmp/inpipe';
-		
+
 		posix_mkfifo($inpipe, 0600);
 		posix_mkfifo($outpipe, 0600);
 
@@ -783,37 +783,90 @@ function ftp_curl_get($url, $sortie, $timeout = 10) {
 	return FALSE;
 }
 
-function http_curl_get($url, $sortie, $timeout = 10) {
-	$useragent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10";
-	if ($fp = fopen($sortie, 'w')) {
-		$ch = curl_init($url);
+function http_curl_get($remote, $local, $timeout = 10, $agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10") {
 
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+	if ($fp = fopen($local, 'w')) {
 
-		curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-
-		curl_setopt($ch, CURLOPT_FILE, $fp);
-		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+		$ch = curl_init($remote);
 
 		curl_setopt_array($ch, array(
+
+			CURLOPT_USERAGENT => $agent,
+			CURLOPT_FILE => $fp,
+
+			CURLOPT_TIMEOUT => $timeout,
+			CURLOPT_CONNECTTIMEOUT => $timeout,
+
+			//CURLOPT_RETURNTRANSFER => false,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_UNRESTRICTED_AUTH => true,
+			CURLOPT_AUTOREFERER => true,
+
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_SSL_VERIFYPEER => false,
+
 		));
 
-		$ret = curl_exec($ch);
-
+		$dt = curl_exec($ch);
 		curl_close($ch);
 		fclose($fp);
-		return $ret;
+
+		return $dt;
 	}
-	return FALSE;
+
+	return false;
+}
+
+
+function http_curl_head($remote, $timeout = 10, $agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10") {
+
+	$ch = curl_init($remote);
+
+	curl_setopt_array($ch, array(
+
+		CURLOPT_HEADER => true,
+		CURLOPT_NOBODY => true,
+
+		CURLOPT_USERAGENT => $agent,
+		CURLOPT_TIMEOUT => $timeout,
+		CURLOPT_CONNECTTIMEOUT => $timeout,
+
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_UNRESTRICTED_AUTH => true,
+		CURLOPT_AUTOREFERER => true,
+
+		CURLOPT_SSL_VERIFYHOST => false,
+		CURLOPT_SSL_VERIFYPEER => false,
+
+	));
+
+	$data = curl_exec($ch);
+	curl_close($ch);
+	if (!$data) return false;
+
+	$data = array_filter(explode("\n", $data));
+	$http = array();
+
+	foreach($data as $v) {
+		$v = explode(': ', $v);
+		if(!empty($v[1])) $http[$v[0]] = $v[1];
+		elseif(!empty($v[0])) {
+			if(preg_match('/^HTTP\/1\.[01] (\d\d\d)/', $v[0], $matches)) {
+				$http['Header'] = $v[0];
+				$http['Status-Code'] = (int)$matches[1];
+			}
+		}
+	}
+
+	return $http;
+}
+
+function http_curl_size($remote, $timeout = null, $agent = null) {
+
+	$head = http_curl_head($remote, $timeout, $agent);
+	return !empty($head['Content-Length']) ? $head['Content-Length'] : false;
+
 }
 
 ?>

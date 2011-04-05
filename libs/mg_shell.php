@@ -53,8 +53,9 @@ class MgShell extends Shell {
  */
 	function loadModel($model = null) {
 		if(!$model) return false;
-		$this->{$model} = ClassRegistry::init($model);
-		return true;
+		list($plugin, $sub) = pluginSplit($model);
+		$this->{$sub} = ClassRegistry::init($model, 'Model');
+		return $this->{$sub} ? true : false;
 	}
 
 /**
