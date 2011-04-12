@@ -35,6 +35,8 @@ class MgFormHelper extends FormHelper {
 		if($options['size'] && !is_numeric($options['size'])) $options['size'] = $inputSize[$options['size']];
 		if(!isset($options['loader'])||$options['loader']) $options['after'] = '<div class="ui-input icon loader hide"></div>' . $options['after'];
 
+		if($name == "password") $options['type'] = "password";
+
 		//if(isset($options['label'])&&$options['label']&&!preg_match("/\:/", $options['label'])) $options['label'].= '&nbsp;:';
 		//else
 		if(!isset($options['label'])) $options['label'] = false;
@@ -51,7 +53,7 @@ class MgFormHelper extends FormHelper {
 				$options['selected'] = $options['default'];
 				unset($options['default']);
 			}
-		} if($options['type'] == 'radio') {
+		} elseif($options['type'] == 'radio') {
 			foreach($options['options'] as $for => &$option) $option = $this->label($for, $this->MgHtml->link($option, '#', array('ui' => 'button trigger-radio', 'overlay' => true, 'escape' => false)));
 			$options = array_merge($options, array('escape' => false));
 
@@ -98,6 +100,14 @@ class MgFormHelper extends FormHelper {
 		return parent::label($for, $content, $options);
 	}
 
+	function end($content = null, $options = array()) {
+
+		$inputOptions = !empty($options['input']) ? $options['input'] : array();
+		unset($options['input']);
+
+		return $this->MgHtml->div($this->Html->tag('input', null, array_merge($inputOptions, array('type' => "submit", 'value' => $content))), $options);
+
+	}
 
 	function _preProcess(&$content = null, &$options = array()) {
 		# ui conversion to array
