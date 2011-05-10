@@ -207,7 +207,7 @@
 	function rlsfiledir($d, $x = null, $p = null) {
 		$l = array();
 		if(is_file($d) && (($x)?ereg($x.'$',$d):1)) $l[] = $p . '/' . substr(strrchr($d, DS), 1);
-		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfile($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
+		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfiledir($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
 		return $l;
 	}
 
@@ -378,6 +378,28 @@
 		$expression = preg_replace("/([^\s]+?)(=|<|>|!)/", "\$a['$1']$2", $expression);
 		foreach($haystack as $key => $value) if(eval("return $expression;")) $result[] = $value;
 		return $result;
+	}
+
+/**
+ * Moves key/values from an array to another
+ *
+ * @param array $source
+ * @param array $destination
+ * @param array $keys
+ * @return array $destination
+ */
+	function array_mv_keys(&$source = array(), &$destination = array(), $keys = array()) {
+		if(!is_array($source)) return false;
+		if(is_string($keys)) $keys = array($keys);
+
+		foreach($keys as $key) {
+			if(!empty($source[$key])) {
+				$destination[$key] = $source[$key];
+				unset($source[$key]);
+			}
+		}
+
+		return $destination;
 	}
 
 /**
