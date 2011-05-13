@@ -27,31 +27,22 @@ class MgHtmlHelper extends HtmlHelper {
 		);
 		$options = array_merge($defaults, $options);
 
-		# generic preProcess
+		// generic preProcess
 		$this->_preProcess($content, $options);
 
-		# overlay handler
+		// overlay handler
 		if(!empty($options['overlay'])) {
-			$options['before'] = $this->span(null, 'ui-button-overlay') . $options['before'];
+			$options['before'] = $this->span(null, 'ui-' . $options['role'] . '-overlay') . $options['before'];
 		}
 		unset($options['overlay']);
 
-		# content
-		$content = $this->span($content, 'ui-button-text');
-		if(!empty($options['icon'])) {
-			$content = $this->span(null, 'ui-icon ui-icon-' . $options['icon']) . $content;
-			$options['ui'][] = 'button-icon';
-			$options['ui'][] = 'button-icon-primary';
-		}
-		if(!empty($options['icon-right'])) {
-			$content = $content . $this->span(null, 'ui-icon ui-icon-' . $options['icon-right']);
-			$options['ui'][] = 'button-icon';
-			$options['ui'][] = 'button-icon-secondary';
-		}
-		unset($options['icon']);
+		// wrap content in span
+		$content = $this->span($content, trim('ui-' . $options['role'] . '-text ' . $options['text']));
+		unset($options['text']);
 
+		// handle action
 		if(!empty($action)) {
-			$this->_getActionClass($options['class'], $action);
+			$this->_processAction($options, $action);
 		}
 
 		/*if(substr($name, 0, 4)!="<div") $div = $this->_div($name, &$options);
@@ -197,7 +188,8 @@ class MgHtmlHelper extends HtmlHelper {
 		$this->_preProcess($content, $options);
 
 		if(!empty($options['action'])) {
-			$content = $this->link($content, $options['action'], array_merge($options['link'], array('escape' => false)));
+			array_mv_keys($options, $options['link'], array('icon', 'text', 'target'));
+			$content = $this->link($content, $options['action'], array_merge($options['link'], array('role' => 'list-item', 'escape' => false)));
 		}
 		unset($options['link'], $options['action']);
 
@@ -284,36 +276,74 @@ class MgHtmlHelper extends HtmlHelper {
 
 	function _postProcess(&$content = null, &$options = array()) {
 
-		# disabled state handling
+		// disabled state handling
 		if(!empty($options['disabled'])) {
 			$options['aria-disabled'] = 'true';
 			$options['ui'][] = 'state-disabled';
 		}
 
-		# ui class tag handling
-		foreach(array_unique($options['ui']) as $key => $val) {
-			$options['class'] .= ' ui-'.$val;
+		// icon handling
+		if(!empty($options['icon'])) {
+
+			// handle icon.variant format
+			if(strpos($options['icon'], '.')) list($options['icon'], $options['icon-variant']) = explode('.', $options['icon']);
+
+			$innerContent = null;
+			if(!empty($options['icon-variant'])) {
+				$innerContent = $this->span(null, 'ui-icon-variant ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon-variant'])));
+			}
+			$content = $this->span($innerContent, 'ui-icon ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon']))) . $content;
+			$options['ui'][] = 'button-icon';
+			$options['ui'][] = 'button-icon-primary';
+		}
+		if(!empty($options['icon-right'])) {
+			$content = $content . $this->span(null, 'ui-icon ui-icon-' . $options['icon-right']);
+			$options['ui'][] = 'button-icon';
+			$options['ui'][] = 'button-icon-secondary';
+		}
+		unset($options['icon'], $options['icon-variant'], $options['icon-right']);
+
+		// ui class tag handling
+		foreach($options['ui'] as $key => $val) {
+			// handle value as key => boolean
+			if(is_string($key)) $options['class'] .= $val ? ' ui-' . $key : null;
+			else $options['class'] .= ' ui-' . $val;
 		}
 		unset($options['ui']);
 
-		# data tag handling
+		// data tag handling
 		foreach($options['data'] as $key => $val) {
 			$options['data-'.$key] = is_array($val)?json_encode($val):$val;
 		}
 		unset($options['data']);
 
-		# markup injection handler
+		// markup injection handler
 		$content = $options['before'] . $content . $options['after'];
 		unset($options['before'], $options['after']);
 
-		# trim if necessary
-		if($options['class'][0] == ' ') $options['class'] = trim($options['class']);
+		// trim classes
+		$options['class'] = trim($options['class']);
 
 	}
 
-	function _getActionClass(&$class, $action) {
-		if(is_string($action) && $action[0] == "#" && strlen($action) > 1) {
-			$class .= ' ui-action-' . substr($action, 1);
+	function _processAction(&$options, $action) {
+
+		$class =& $options['class'];
+		$data =& $options['data'];
+
+		if(is_string($action)) {
+			if($action[0] == "#" && strlen($action) > 1) {
+				$class .= ' ui-action-' . substr($action, 1);
+			}
+		} elseif(is_array($action)) {
+			if(!empty($action['controller'])) {
+				$class .= ' ui-controller-' . $action['controller'];
+				$data['controller'] = $action['controller'];
+			}
+			if(!empty($action['action'])) {
+				$class .= ' ui-action-' . $action['action'];
+				$data['action'] = $action['action'];
+			}
 		}
 	}
 

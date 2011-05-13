@@ -100,12 +100,30 @@ class MgFormHelper extends FormHelper {
 		return parent::label($for, $content, $options);
 	}
 
-	function end($content = null, $options = array()) {
+	function button($content = null, $options = array()) {
 
-		$inputOptions = !empty($options['input']) ? $options['input'] : array();
-		unset($options['input']);
+		$inputOptions = !empty($options['input']) ? $options['input'] : array('class' => null);
+		$inputOptions['class'] .= 'ui-button-text' . (!empty($options['text']) ? ' ' . $options['text'] : null);
+		unset($options['input'], $options['text']);
+
+		return $this->MgHtml->div($this->Html->tag('input', null, array_merge($inputOptions, array('type' => "button", 'value' => $content))), $options);
+
+	}
+
+	function submit($content = null, $options = array()) {
+
+		$inputOptions = !empty($options['input']) ? $options['input'] : array('class' => null);
+		$inputOptions['class'] .= 'ui-button-text' . (!empty($options['text']) ? ' ' . $options['text'] : null);
+		unset($options['input'], $options['text']);
 
 		return $this->MgHtml->div($this->Html->tag('input', null, array_merge($inputOptions, array('type' => "submit", 'value' => $content))), $options);
+
+	}
+
+	function end($content = null, $options = array()) {
+
+		if($content) $content = $this->submit($content, $options);
+		return $content . '</form>';
 
 	}
 
