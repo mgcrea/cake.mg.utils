@@ -366,6 +366,20 @@
 	}
 
 /**
+ * array_merge_keys()
+ */
+	function array_merge_keys(){
+		$args = func_get_args();
+		$result = array();
+		foreach ($args as $array) {
+			foreach ($array as $key => $value) {
+				$result[$key] = $value;
+			}
+		}
+		return $result;
+	}
+
+/**
  * Performs a search in haystack array provided with a regex
  *
  * @param array $hastack
@@ -698,6 +712,29 @@ function tail2($file, $num_to_get=1000)
 /**********************
  *** curl functions ***
  **********************/
+
+function curl_file_get_contents($url, $timeout = 10) {
+	$ch = curl_init($url);
+
+	curl_setopt_array($ch, array(
+		CURLOPT_TIMEOUT => $timeout,
+		CURLOPT_CONNECTTIMEOUT => $timeout,
+
+		CURLOPT_RETURNTRANSFER => true,
+		//CURLOPT_FOLLOWLOCATION => true,
+		//CURLOPT_UNRESTRICTED_AUTH => true,
+		//CURLOPT_AUTOREFERER => true,
+
+		CURLOPT_SSL_VERIFYHOST => false,
+		CURLOPT_SSL_VERIFYPEER => false,
+	));
+
+	$ret = curl_exec($ch);
+	curl_close($ch);
+
+	if ($ret) return $ret;
+		else return false;
+}
 
 function curl_ftp_list2($url, $timeout = 10) {
 	$ch = curl_init($url);
