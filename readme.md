@@ -7,6 +7,10 @@ Some utilities for CakePHP
 * CakePHP framework [>=1.3]		~ https://github.com/cakephp/cakephp
 * LessPHP compiler				~ https://github.com/leafo/lessphp
 
+## Behaviors 
+
+* Lockable      - adds the ability to lock a table between a find & save.
+
 ## Contact ##
 
 * contact@mg-crea.com

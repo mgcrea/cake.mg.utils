@@ -32,6 +32,7 @@ class LockableBehavior extends ModelBehavior {
  * @var array
  */
 	protected $_defaults = array(
+		'lock_type' => "WRITE"
 	);
 
 /**
@@ -53,11 +54,9 @@ class LockableBehavior extends ModelBehavior {
  * @return mixed Result of the find operation
  */
 	function beforeFind(&$Model, $queryData = array()) {
-
 		// option to lock table
 		if(!empty($queryData['lock'])) {
-			$sql = "LOCK TABLES `{$Model->table}` WRITE, `{$Model->table}` AS `{$Model->alias}` WRITE;";
-			if($Model->query($sql)) $Model->locked = true;
+			if($Model->lock()) $Model->locked = true;
 		}
 	}
 
@@ -67,9 +66,25 @@ class LockableBehavior extends ModelBehavior {
 	function afterSave(&$Model, $created) {
 		// unlock tables
 		if(!empty($this->locked)) {
-			$sql = "UNLOCK TABLES";
-			$Model->query($sql);
+			$Model->unlock();
 		}
 	}
+
+/**
+ * Lock a table
+ */
+	function lock(&$Model, $options = array()) {
+		$sql = "LOCK TABLES `{$Model->table}` {$this->settings[$Model->alias]['lock_type']}, `{$Model->table}` AS `{$Model->alias}` {$this->settings[$Model->alias]['lock_type']};";
+		return $Model->query($sql);
+	}
+
+/**
+ * Unlock tables
+ */
+	function unlock(&$Model, $options = array()) {
+		$sql = "UNLOCK TABLES";
+		return $Model->query($sql);
+	}
+
 
 }

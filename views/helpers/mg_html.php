@@ -37,7 +37,7 @@ class MgHtmlHelper extends HtmlHelper {
 		unset($options['overlay']);
 
 		// wrap content in span
-		$content = $this->span($content, trim('ui-' . $options['role'] . '-text ' . $options['text']));
+		$content = $this->span($content, trim('ui-text ui-' . $options['role'] . '-text ' . $options['text']));
 		unset($options['text']);
 
 		// handle action
@@ -190,8 +190,11 @@ class MgHtmlHelper extends HtmlHelper {
 		if(!empty($options['action'])) {
 			array_mv_keys($options, $options['link'], array('icon', 'text', 'target'));
 			$content = $this->link($content, $options['action'], array_merge($options['link'], array('role' => 'list-item', 'escape' => false)));
+		} else {
+			// wrap content in span
+			$content = $this->span($content, trim('ui-text ' . $options['text']));
 		}
-		unset($options['link'], $options['action']);
+		unset($options['link'], $options['action'], $options['text']);
 
 		# generic postProcess
 		$this->_postProcess($content, $options);
@@ -293,13 +296,13 @@ class MgHtmlHelper extends HtmlHelper {
 				$innerContent = $this->span(null, 'ui-icon-variant ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon-variant'])));
 			}
 			$content = $this->span($innerContent, 'ui-icon ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon']))) . $content;
-			$options['ui'][] = 'button-icon';
-			$options['ui'][] = 'button-icon-primary';
+			$options['ui'][] = 'has-icon';
+			$options['ui'][] = 'has-primary-icon';
 		}
 		if(!empty($options['icon-right'])) {
 			$content = $content . $this->span(null, 'ui-icon ui-icon-' . $options['icon-right']);
-			$options['ui'][] = 'button-icon';
-			$options['ui'][] = 'button-icon-secondary';
+			$options['ui'][] = 'has-icon';
+			$options['ui'][] = 'has-icon-secondary';
 		}
 		unset($options['icon'], $options['icon-variant'], $options['icon-right']);
 
