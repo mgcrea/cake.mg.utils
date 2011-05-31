@@ -45,56 +45,6 @@ class MgHtmlHelper extends HtmlHelper {
 			$this->_processAction($options, $action);
 		}
 
-		/*if(substr($name, 0, 4)!="<div") $div = $this->_div($name, &$options);
-		else $div = $name;
-
-		$action = false;
-		if(isset($options['action'])&&$options['action']) {
-			if(is_array($options['action'])) {
-				if($options['action']) $action = $options['action'];
-				else $action = '#';
-			} else {
-				if(substr($options['action'], 0, 1) != '/' && substr($options['action'], 0, 1) != '#' && substr($options['action'], 0, 5) != 'http:' && substr($options['action'], 0, 4) != 'ftp:') {
-					$actionParams = explode(' ',$options['action']);
-					$action = array('action' => $actionParams[0]);
-					foreach($actionParams as $key => $param) {
-						if($key > 0) array_push($action, $param);
-					}
-				} else {
-					$action = $options['action'];
-				}
-			}
-		}
-		unset($options['action']);
-
-		//'action' => array('controller' => 'tags', 'action' => 'new', 'type' => $type)
-
-		if(!isset($options['class'])) $options['class'] = "link";
-
-		# transform action to class
-		if(!isset($action['controller'])) $action['controller'] = $this->view->viewVars['controllerKey'];
-		if(is_array($action)) foreach($action as $key => $val) {
-
-			if($key == "action" || $key == "controller") $options['class'] .= ' '.str_replace('_', '-', $val);
-			else $options['class'] .= ' '.str_replace('_', '-', $key);
-
-			if($val && $key === "controller") $options['class'] .= ' ui-controller-'.str_replace('_', '-', $val);
-			elseif($val && $key === "action") $options['class'] .= ' ui-action-'.str_replace('_', '-', $val);
-			elseif(is_numeric($key)) $options['class'] .= ' ui-param-'.str_replace('_', '-', $val);
-			else {
-				$options['class'] .= ' ui-param-' . str_replace('_', '-', $key);
-				$options['data']['ui-param-' . str_replace('_', '-', $key)] = $val;
-			}
-		}
-
-		//if(isset($options['ajax'])&&$options['ajax']) $options['class'] .= " ajax";
-		if(!isset($options['ajax'])||$options['ajax']) $options['class'] .= " ajax";
-
-		if(isset($options['href'])&&$options['href']) $action = $options['href'];
-		*/
-
-
-
 		# js message handling
 		$message = false;
 		if(!empty($options['message'])) {
@@ -288,14 +238,21 @@ class MgHtmlHelper extends HtmlHelper {
 		// icon handling
 		if(!empty($options['icon'])) {
 
+			// handle special chars
+			$specialChars = array('$', '{', '<');
+			$startsWithSpecialChar = in_array($options['icon'][0], $specialChars);
+
 			// handle icon.variant format
-			if(strpos($options['icon'], '.')) list($options['icon'], $options['icon-variant']) = explode('.', $options['icon']);
+			if(strpos($options['icon'], '.') && !$startsWithSpecialChar) list($options['icon'], $options['icon-variant']) = explode('.', $options['icon']);
 
 			$innerContent = null;
 			if(!empty($options['icon-variant'])) {
 				$innerContent = $this->span(null, 'ui-icon-variant ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon-variant'])));
 			}
-			$content = $this->span($innerContent, 'ui-icon ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon']))) . $content;
+
+			if(!$startsWithSpecialChar) $content = $this->span($innerContent, 'ui-icon ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon']))) . $content;
+			else $content = $this->span($options['icon'], array('class' => 'ui-icon', 'escape' => false)) . $content;
+
 			$options['ui'][] = 'has-icon';
 			$options['ui'][] = 'has-primary-icon';
 		}
