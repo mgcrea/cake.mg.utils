@@ -250,8 +250,8 @@ class MgHtmlHelper extends HtmlHelper {
 				$innerContent = $this->span(null, 'ui-icon-variant ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon-variant'])));
 			}
 
-			if(!$startsWithSpecialChar) $content = $this->span($innerContent, 'ui-icon ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon']))) . $content;
-			else $content = $this->span($options['icon'], array('class' => 'ui-icon', 'escape' => false)) . $content;
+			if(in_array($options['icon'][0], array('<'))) $content = $this->span($options['icon'], array('class' => 'ui-icon', 'escape' => false)) . $content;
+			else $content = $this->span($innerContent, 'ui-icon ui-icon-' . implode(' ui-icon-', explode(' ', $options['icon']))) . $content;
 
 			$options['ui'][] = 'has-icon';
 			$options['ui'][] = 'has-primary-icon';
