@@ -630,59 +630,85 @@ function format_bytes($size) {
  *********************/
 //debug(simplexml_import_dom($parent)->asXML(), true);
 
-function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $parent = null) {
-
-	if(!$dom) {
-		$dom = new DOMDocument('1.0', 'UTF-8');
-		$dom->preserveWhiteSpace = false;
-		$dom->formatOutput = true;
+/**
+ * Execute queries & return content
+ *
+ * @param DOMXPath $xpath
+ * @param mixed $query
+ * @return array $options
+ */
+	function query_xpath(DOMXPath $xpath, $query = null, $options = array()) {
+		if(!is_array($query)) $query = array($query);
+		foreach($query as $k => &$v) {
+			if($node = $xpath->query($v)->item(0)) {
+				else $v = trim(!empty($options['decode']) ? utf8_decode($node->nodeValue) : $node->nodeValue);
+			} else {
+				$v = null;
+			}
+		}
+		return $query;
 	}
 
-	$parent = $parent?$parent:$dom;
+/**
+ * Insert array into a dom, optionaly a specific parent
+ *
+ * @param array $elements
+ * @param DOMDocument $dom
+ * @return DOMElement $parent
+ */
+	function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $parent = null) {
 
-	foreach($elements as $key => $val) {
+		if(!$dom) {
+			$dom = new DOMDocument('1.0', 'UTF-8');
+			$dom->preserveWhiteSpace = false;
+			$dom->formatOutput = true;
+		}
 
-		if($key === '@attributes') {
-			foreach($val as $attrKey => $attrVal) {
-				$parent->setAttribute($attrKey, $attrVal);
-			}
-		} else {
+		$parent = $parent?$parent:$dom;
 
-			if(is_numeric($key)) {
-				$key = '_' . $key;
-			}
+		foreach($elements as $key => $val) {
 
-			if(is_array($val)) {
+			if($key === '@attributes') {
+				foreach($val as $attrKey => $attrVal) {
+					$parent->setAttribute($attrKey, $attrVal);
+				}
+			} else {
 
-				if(array_key_exists(0, $val)) {
-					foreach($val as $v) {
+				if(is_numeric($key)) {
+					$key = '_' . $key;
+				}
+
+				if(is_array($val)) {
+
+					if(array_key_exists(0, $val)) {
+						foreach($val as $v) {
+							$key_element = $dom->createElement($key);
+							$parent->appendChild($key_element);
+							dom_insert($v, $dom, $key_element);
+						}
+					} else {
 						$key_element = $dom->createElement($key);
 						$parent->appendChild($key_element);
-						dom_insert($v, $dom, $key_element);
+						dom_insert($val, $dom, $key_element);
 					}
+
 				} else {
 					$key_element = $dom->createElement($key);
-					$parent->appendChild($key_element);
-					dom_insert($val, $dom, $key_element);
+					$element = $parent->appendChild($key_element);
+
+					if(preg_match('/[&<>]/i', $val)) {
+						$element->appendChild($dom->createCDATASection($val));
+					} else {
+						$key_element->nodeValue = $val;
+					}
 				}
 
-			} else {
-				$key_element = $dom->createElement($key);
-				$element = $parent->appendChild($key_element);
-
-				if(preg_match('/[&<>]/i', $val)) {
-					$element->appendChild($dom->createCDATASection($val));
-				} else {
-					$key_element->nodeValue = $val;
-				}
 			}
 
 		}
 
+		return $dom;
 	}
-
-	return $dom;
-}
 
 function tail($file, $numLines = 1000)
 {
