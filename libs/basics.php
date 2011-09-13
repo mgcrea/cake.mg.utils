@@ -1,34 +1,26 @@
 <?php
 
-/*************************
- *** defining constans ***
- *************************/
+    /*************************
+     *** defining constans ***
+     *************************/
 
-/**
- * Use the DS to separate the directories in other defines
- */
+    /**
+     * Use the DS to separate the directories in other defines
+     */
 	if (!defined('DS')) {
 		define('DS', DIRECTORY_SEPARATOR);
 	}
 
-/**
- * Use the DS to separate the directories in other defines
- */
+    /**
+     * Use the DS to separate the directories in other defines
+     */
 	if (!defined('IS_WIN')) {
 		define('IS_WIN', DS == '\\');
 	}
 
-/**
- * The full path to the directory which holds "app", WITHOUT a trailing DS.
- *
- */
-	if (!defined('ROOT')) {
-		define('ROOT', LITHIUM_APP_PATH . DS . 'webroot');
-	}
-
-/**
- * Basic defines for timing functions.
- */
+    /**
+     * Basic defines for timing functions.
+     */
 	if (!defined('SECOND')) define('SECOND', 1);
 	if (!defined('MINUTE')) define('MINUTE', 60);
 	if (!defined('HOUR')) define('HOUR', 3600);
@@ -37,21 +29,21 @@
 	if (!defined('MONTH')) define('MONTH', 2592000);
 	if (!defined('YEAR')) define('YEAR', 31536000);
 
-/***********************
- *** debug functions ***
- ***********************/
+    /***********************
+     *** debug functions ***
+     ***********************/
 
-/**
- * Prints out debug information about given variable.
- *
- * Only runs if debug level is greater than zero.
- *
- * @param boolean $var Variable to show debug information for.
- * @param boolean $showHtml If set to true, the method prints the debug data in a screen-friendly way.
- * @param boolean $showFrom If set to true, the method prints from where the function was called.
- * @link http://book.cakephp.org/view/1190/Basic-Debugging
- * @link http://book.cakephp.org/view/1128/debug
- */
+    /**
+     * Prints out debug information about given variable.
+     *
+     * Only runs if debug level is greater than zero.
+     *
+     * @param boolean $var Variable to show debug information for.
+     * @param boolean $showHtml If set to true, the method prints the debug data in a screen-friendly way.
+     * @param boolean $showFrom If set to true, the method prints from where the function was called.
+     * @link http://book.cakephp.org/view/1190/Basic-Debugging
+     * @link http://book.cakephp.org/view/1128/debug
+     */
 	if (!function_exists('debug')) {
 		function debug($var = false, $showHtml = false, $showFrom = true) {
 			if ($showFrom) {
@@ -60,7 +52,6 @@
 				echo ' (line <strong>' . $calledFrom[0]['line'] . '</strong>)';
 			}
 			echo "\n<pre class=\"debug\">\n";
-
 			$var = print_r($var, true);
 			if ($showHtml) {
 				$var = str_replace('<', '&lt;', str_replace('>', '&gt;', $var));
@@ -69,11 +60,11 @@
 		}
 	}
 
-/**
- * Returns backtrace information
- *
- * @param integer $i Variable to show debug trace for.
- */
+    /**
+     * Returns backtrace information
+     *
+     * @param integer $i Variable to show debug trace for.
+     */
 	function get_caller($i = 2) {
 		$traces = debug_backtrace(false);
 		if (isset($traces[$i])) {
@@ -82,11 +73,11 @@
 		return null;
 	}
 
-/**
- * Returns backtrace information (class)
- *
- * @param integer $i Variable to show debug trace for.
- */
+    /**
+     * Returns backtrace information (class)
+     *
+     * @param integer $i Variable to show debug trace for.
+     */
 	function get_caller_class($i = 2) {
 		$traces = debug_backtrace(false);
 		if (isset($traces[$i])) {
@@ -95,11 +86,11 @@
 		return null;
 	}
 
-/**
- * Returns backtrace information (function)
- *
- * @param integer $i Variable to show debug trace for.
- */
+    /**
+     * Returns backtrace information (function)
+     *
+     * @param integer $i Variable to show debug trace for.
+     */
 	function get_caller_function($i = 2) {
 		$traces = debug_backtrace(false);
 		if (isset($traces[$i])) {
@@ -108,72 +99,96 @@
 		return null;
 	}
 
-/**
- * Flush buffers
- */
+	/**
+	 * Returns backtrace information (function)
+	 *
+	 * @param integer $i Variable to show debug trace for.
+	 */
+	function require_params($params, $source) {
+		foreach($params as $param) {
+			if(!isset($source[$param])) trigger_error(sprintf('Parameter %s missing', $param), E_USER_ERROR);
+		}
+	}
+
+
+    /**
+     * Disable buffers
+     */
+
+	function disable_buffers() {
+		@apache_setenv('no-gzip', 1);
+		@ini_set('zlib.output_compression', 0);
+		@ini_set('implicit_flush', 1);
+		for ($i = 0; $i < ob_get_level(); $i++) { ob_end_flush(); }
+		ob_implicit_flush(1);
+	}
+
+    /**
+     * Flush buffers
+     */
 
 	function flush_buffers($output_callback = "ob_gzhandler") {
-		ob_end_flush();
-		ob_flush();
-		flush();
+		@ob_end_flush();
+		@flush();
 		if(!@ob_start($output_callback)) @ob_start();
 	}
 
-/****************************
- *** filesystem functions ***
- ****************************/
+    /****************************
+     *** filesystem functions ***
+     ****************************/
 
-/**
- * Prints out array of files and directories... optionally filtered by a string
- *
- * @param string $d Path to analyse.
- * @param string $x Variable to filter results by extension.
- */
+    /**
+     * Prints out array of files and directories... optionally filtered by a string
+     *
+     * @param string $d Path to analyse.
+     * @param string $x Variable to filter results by extension.
+     */
 	function ls($d = WWW_ROOT, $x = null) {
 		$l = array();
 		foreach (array_diff(scandir($d), array('.', '..')) as $f) if((($x)?ereg($x,$f):1)) $l[] = $f;
 		return $l;
 	}
 
-/**
- * Prints out array of files without directories... optionally filtered by extension
- *
- * @param string $d Path to analyse.
- * @param string $x Variable to filter results by extension.
- */
+    /**
+     * Prints out array of files without directories... optionally filtered by extension
+     *
+     * @param string $d Path to analyse.
+     * @param string $x Variable to filter results by extension.
+     */
 	function lsfile($d = WWW_ROOT, $x = null) {
 		$l = array();
 		foreach (array_diff(scandir($d), array('.', '..')) as $f) if(is_file($d . DS . $f) && (($x)?ereg($x.'$',$f):1)) $l[] = $f;
 		return $l;
 	}
 
-/**
- * Prints out array of directories
- *
- * @param string $d Path to analyse.
- */
+    /**
+     * Prints out array of directories
+     *
+     * @param string $d Path to analyse.
+     */
 	function lsdir($d = WWW_ROOT){
 		$l = array();
 		foreach (array_diff(scandir($d), array('.', '..')) as $f) if(is_dir($d . DS . $f)) $l[] = $f;
 		return $l;
 	}
 
-/**
- * Create directory recursively
- *
- * @param string $d Path to create.
- * @param ? $m Chmod to apply.
- */
-	function rmkdir($d, $m = 0755) {
+    /**
+     * Create directory recursively
+     *
+     * @param string $d Path to create.
+     * @param ? $m Chmod to apply.
+     */
+	function rmkdir($d, $m = null) {
+		if(!$m) $m = 0777 & (0777 - umask());
 		return mkdir($d, $m, true);
 	}
 
-/**
- * Delete directory recursively. optionally preserving base directory
- *
- * @param string $d Path to delete.
- * @param boolean $k Keep base directory.
- */
+    /**
+     * Delete directory recursively. optionally preserving base directory
+     *
+     * @param string $d Path to delete.
+     * @param boolean $k Keep base directory.
+     */
 	function rrmdir($d, $k = false) {
 		if(!file_exists($d)) return true;
 		if(!is_dir($d)) return unlink($d);
@@ -183,82 +198,82 @@
 		return true;
 	}
 
-/**
- * List files recursively. optionally filtered by extension
- *
- * @param string $d Path to analyse.
- * @param string $x Variable to filter results by extension.
- */
+    /**
+     * List files recursively. optionally filtered by extension
+     *
+     * @param string $d Path to analyse.
+     * @param string $x Variable to filter results by extension.
+     */
 
 	function rlsfile($d, $x = null, $p = null) {
 		$l = array();
-		if(is_file($d) && (($x)?ereg($x.'$',$d):1)) $l[] = (substr(strchr($p, '/'), 1) ? substr(strchr($p, '/'), 1) . '/' : null) . substr(strrchr($d, DS), 1);
+		if(is_file($d) && (($x)?preg_match('/'.addcslashes($x, '.').'$/',$d):1)) $l[] = (substr(strchr($p, '/'), 1) ? substr(strchr($p, '/'), 1) . '/' : null) . substr(strrchr($d, DS), 1);
 		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfile($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
 		return $l;
 	}
 
-/**
- * List files recursively. optionally filtered by extension
- *
- * @param string $d Path to analyse.
- * @param string $x Variable to filter results by extension.
- */
+    /**
+     * List files recursively. optionally filtered by extension
+     *
+     * @param string $d Path to analyse.
+     * @param string $x Variable to filter results by extension.
+     */
 
 	function rlsfiledir($d, $x = null, $p = null) {
 		$l = array();
-		if(is_file($d) && (($x)?ereg($x.'$',$d):1)) $l[] = $p . '/' . substr(strrchr($d, DS), 1);
+		if(is_file($d) && (($x)?preg_match('/'.addcslashes($x, '.').'$/',$d):1)) $l[] = $p . '/' . substr(strrchr($d, DS), 1);
 		elseif(is_dir($d)) foreach (array_diff(scandir($d), array('.', '..')) as $f) $l = array_merge($l, rlsfiledir($d . DS . $f, $x, ($p ? $p . '/' : null) . substr(strrchr($d, DS), 1)));
 		return $l;
 	}
 
-/**
- * Clear directory recursively. optionally preserving base directory
- *
- * @param string $d Path to delete.
- * @param string $x Variable to filter out by extension.
- */
+    /**
+     * Clear directory recursively. optionally preserving base directory
+     *
+     * @param string $d Path to delete.
+     * @param string $x Variable to filter out by extension.
+     */
 	function rrmfile($d, $x = null) {
-		if(!file_exists($d) || (($x)?preg_match('/' . $x . '$/', $d):0)) return true;
+		if(!file_exists($d) || (($x)?preg_match('/'.$x.'$/',$d):0)) return true;
 		if(!is_dir($d)) return unlink($d);
 		foreach (array_diff(scandir($d), array('.', '..')) as $f) if(!rrmfile($d . DS . $f, $x)) return false;
 		return true;
 	}
 
-/**
- * Get file lines
- *
- * @param string $d Path to delete.
- * @param string $x Variable to filter out by extension.
- */
+    /**
+     * Get file lines
+     *
+     * @param string $d Path to delete.
+     * @param string $x Variable to filter out by extension.
+     */
 	function wcl($f) {
 		exec("wc -l $f", $r);
 		return (int)strstr(current($r), ' ', true);
 	}
 
-/**
- * Copy file or folder from source to destination, it can do
- * recursive copy as well and is very smart
- * It recursively creates the dest file or directory path if there weren't exists
- *
- * Situtaions :
- *
- * - Src:/home/test/file.txt ,Dst:/home/test/b ,Result:/home/test/b -> If source was file copy file.txt name with b as name to destination
- * - Src:/home/test/file.txt ,Dst:/home/test/b/ ,Result:/home/test/b/file.txt -> If source was file Creates b directory if does not exsits and copy file.txt into it
- * - Src:/home/test ,Dst:/home/ ,Result:/home/test/** -> If source was directory copy test directory and all of its content into dest
- * - Src:/home/test/ ,Dst:/home/ ,Result:/home/**-> if source was direcotry copy its content to dest
- * - Src:/home/test ,Dst:/home/test2 ,Result:/home/test2/** -> if source was directoy copy it and its content to dest with test2 as name
- * - Src:/home/test/ ,Dst:/home/test2 ,Result:->/home/test2/** if source was directoy copy it and its content to dest with test2 as name
- *
- * @todo
- *  - Should have rollback technique so it can undo the copy when it wasn't successful
- *  - Auto destination technique should be possible to turn off
- *  - Supporting callback function
- *  - May prevent some issues on shared enviroments : http://us3.php.net/umask
- * @param $source //file or folder
- * @param $dest ///file or folder
- * @param $options //folderPermission,filePermission
- * @return boolean
- */
+    /**
+     * Copy file or folder from source to destination, it can do
+     * recursive copy as well and is very smart
+     * It recursively creates the dest file or directory path if there weren't exists
+     *
+     * Situtaions :
+     *
+     * - Src:/home/test/file.txt ,Dst:/home/test/b ,Result:/home/test/b -> If source was file copy file.txt name with b as name to destination
+     * - Src:/home/test/file.txt ,Dst:/home/test/b/ ,Result:/home/test/b/file.txt -> If source was file Creates b directory if does not exsits and copy file.txt into it
+     * - Src:/home/test ,Dst:/home/ ,Result:/home/test/** -> If source was directory copy test directory and all of its content into dest
+     * - Src:/home/test/ ,Dst:/home/ ,Result:/home/**-> if source was direcotry copy its content to dest
+     * - Src:/home/test ,Dst:/home/test2 ,Result:/home/test2/** -> if source was directoy copy it and its content to dest with test2 as name
+     * - Src:/home/test/ ,Dst:/home/test2 ,Result:->/home/test2/** if source was directoy copy it and its content to dest with test2 as name
+     *
+     * @todo
+     *  - Should have rollback technique so it can undo the copy when it wasn't successful
+     *  - Auto destination technique should be possible to turn off
+     *  - Supporting callback function
+     *  - May prevent some issues on shared enviroments : http://us3.php.net/umask
+     * @param $source //file or folder
+     * @param $dest ///file or folder
+     * @param $options //folderPermission,filePermission
+     * @return boolean
+     */
 	function smart_copy($source, $dest, $options=array('folderPermission'=>0755,'filePermission'=>0755)) {
 		$result=false;
 		if (is_file($source)) {
@@ -301,7 +316,7 @@
 				if($file!="." && $file!="..")
 				{
 					$numFiles++;
-					 if(!is_dir($source.DS.$file)) {
+                    if(!is_dir($source.DS.$file)) {
 						$__dest=$dest.DS.$file;
 					} else {
 						if($source.DS.$file == $dest) break; // same folder w/o DS
@@ -321,10 +336,10 @@
 		return $result;
 	}
 
-/**
- * Writes in a newly created temporary file
- *
- */
+    /**
+     * Writes in a newly created temporary file
+     *
+     */
 	function write_tmp($c = null, $post = null, $pre = "tmp") {
 		$f = tempnam(CACHE, $pre);
 		$h = fopen($f, "w");
@@ -343,18 +358,34 @@
 		//return file_get_contents($f);
 	}
 
-/***********************
- *** array functions ***
- ***********************/
+	/**
+	 * Get available file path
+	 */
+	function file_available_path($path) {
+		$pathinfo = pathinfo($path);
 
-/**
- * Performs a search in haystack array provided
- *
- * @param string $needle
- * @param array $hastack
- * @param boolean $search_keys
- * @return string Key found
- */
+		$i= 0;
+		while(file_exists($path)) {
+			$i++;
+			$path = $pathinfo['dirname'] . DS . $pathinfo['filename'] . ' (' . $i . ').' . $pathinfo['extension'];
+		}
+
+		return $path;
+	}
+
+
+    /***********************
+     *** array functions ***
+     ***********************/
+
+    /**
+     * Performs a search in haystack array provided
+     *
+     * @param string $needle
+     * @param array $hastack
+     * @param boolean $search_keys
+     * @return string Key found
+     */
 	function array_find($needle, $haystack = array(), $search_keys = false) {
 		if(!$haystack) return false;
 		foreach($haystack as $key => $value) {
@@ -365,9 +396,9 @@
 		return false;
 	}
 
-/**
- * array_merge_keys()
- */
+    /**
+     * array_merge_keys()
+     */
 	function array_merge_keys(){
 		$args = func_get_args();
 		$result = array();
@@ -379,13 +410,13 @@
 		return $result;
 	}
 
-/**
- * Performs a search in haystack array provided with a regex
- *
- * @param array $hastack
- * @param string $expression
- * @return string Key found
- */
+    /**
+     * Performs a search in haystack array provided with a regex
+     *
+     * @param array $hastack
+     * @param string $expression
+     * @return string Key found
+     */
 	function array_preg_search($haystack, $expression) {
 		if(!is_array($haystack)) return false;
 		$result = array();
@@ -394,14 +425,14 @@
 		return $result;
 	}
 
-/**
- * Moves key/values from an array to another
- *
- * @param array $source
- * @param array $destination
- * @param array $keys
- * @return array $destination
- */
+    /**
+     * Moves key/values from an array to another
+     *
+     * @param array $source
+     * @param array $destination
+     * @param array $keys
+     * @return array $destination
+     */
 	function array_mv_keys(&$source = array(), &$destination = array(), $keys = array()) {
 		if(!is_array($source)) return false;
 		if(is_string($keys)) $keys = array($keys);
@@ -416,58 +447,72 @@
 		return $destination;
 	}
 
-/**
- * Converts an object to an array
- *
- * @param object $data
- */
+    /**
+     * Recursive implode an array
+     *
+     * @param string $glue
+     * @param array $pieces
+     */
+	function rimplode($glue = '.', $pieces = array()) {
+		foreach($pieces as $piece) {
+			if(is_array($piece)) $r[] = rimplode($glue, $piece);
+			else $r[] = $piece;
+		}
+		return implode($glue, $r);
+	}
+
+    /**
+     * Converts an object to an array
+     *
+     * @param object $data
+     */
 	function to_array($data) {
 		if (is_object($data)) $data = get_object_vars($data);
 		return is_array($data) ? array_map(__FUNCTION__, $data) : $data;
 	}
 
-/**
- * Converts an array to an object
- *
- * @param array $data
- */
+    /**
+     * Converts an array to an object
+     *
+     * @param array $data
+     */
 	function to_object($data) {
 		return is_array($data) ? (object) array_map(__FUNCTION__, $data) : $data;
 	}
 
-/************************
- *** string functions ***
- ************************/
+    /************************
+     *** string functions ***
+     ************************/
 
-/**
- * Removes head & tail lines from source
- *
- * @param string $str
- * @param string $head
- * @param string $tail
- * @return string Sliced
- */
+    /**
+     * Removes head & tail lines from source
+     *
+     * @param string $str
+     * @param string $head
+     * @param string $tail
+     * @return string Sliced
+     */
 	function str_slice_lines($str, $head = 0, $tail = 0) {
 		return implode("\n", array_slice(array_slice(explode("\n", $str), $head), 0, count(explode("\n", $str)) - $head - $tail));
 	}
 
-/**
- * Removes file unsafe chars from a string
- *
- * @param string $subject
- * @param string $replace
- * @return string Cleaned $subject
- */
+    /**
+     * Removes file unsafe chars from a string
+     *
+     * @param string $subject
+     * @param string $replace
+     * @return string Cleaned $subject
+     */
 	function strip_unsafe($subject, $replace = '_') {
 		return preg_replace('/([\\\\\/\:*?"<>|])/', $replace, $subject);
 	}
 
-/**
- * Removes accents from a string
- *
- * @param string $subject
- * @return string Cleaned $subject
- */
+    /**
+     * Removes accents from a string
+     *
+     * @param string $subject
+     * @return string Cleaned $subject
+     */
 	function strip_accents($subject) {
 		$subject = str_ireplace(array('à', 'â', 'ä'), 'a', $subject);
 		$subject = str_ireplace(array('é', 'è', 'ê', 'ë'), 'e', $subject);
@@ -478,23 +523,23 @@
 		return $subject;
 	}
 
-/**
- * Creates a global unique identifier
- *
- * @return string guid
- */
+    /**
+     * Creates a global unique identifier
+     *
+     * @return string guid
+     */
 	function create_guid() {
 		if (function_exists('com_create_guid') === true) return strtolower(trim(com_create_guid(), '{}'));
 		return strtolower(sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)));
 	}
 
-/**
- * Converts dos to unix (cygwin) path
- *
- * @param string $path
- * @param boolean $checkDS
- * @return string converted $path
- */
+    /**
+     * Converts dos to unix (cygwin) path
+     *
+     * @param string $path
+     * @param boolean $checkDS
+     * @return string converted $path
+     */
 	function cygpath($path, $checkDS = false) {
 		if((!$checkDS || DS == '\\') && preg_match('/' . '([a-z]):\\\\((?:[-\\w\\.\\d\\`]+\\\\)*(?:[-\\w\\.\\d\\`]+)?)(\\s+(.*))?' . '/is', $path, $m)) {
 			return strtolower('/cygdrive/' . $m[1] . '/' . str_replace('\\', '/', $m[2])) . (!empty($m[4]) ? ' ' . $m[4] : null);
@@ -502,13 +547,13 @@
 		return $path;
 	}
 
-/**
- * Execute a command with pipes control
- *
- * @param string $subject
- * @param boolean $explode
- * @return array $pipes
- */
+    /**
+     * Execute a command with pipes control
+     *
+     * @param string $subject
+     * @param boolean $explode
+     * @return array $pipes
+     */
 	function proc_exec($cmd, $explode = false) {
 		if($process = proc_open($cmd, array(array("pipe", "r"), array("pipe", "w"), array("pipe", "w")), $pipes, TMP)) {
 			$output_pipes = array_map("stream_get_contents", $pipes);
@@ -533,14 +578,14 @@
 		if($pid) {
 
 			/*
-			$in = fopen($inpipe, 'w');
-			fwrite($in, "A message for the inpipe reader\n");
-			fclose($in);
-			*/
+             $in = fopen($inpipe, 'w');
+             fwrite($in, "A message for the inpipe reader\n");
+             fclose($in);
+             */
 
 			$out = fopen($outpipe, 'r');
 			while(!feof($out)) {
-			echo "From out pipe: " . fgets($out) . PHP_EOL;
+                echo "From out pipe: " . fgets($out) . PHP_EOL;
 			}
 			fclose($out);
 
@@ -574,20 +619,20 @@
 		}
 	}
 
-/**
- * Format bytes
- *
- * @param string $subject
- */
-function format_bytes($size) {
-	$units = array(' B', ' KB', ' MB', ' GB', ' TB');
-	for ($i = 0; $size >= 1024 && $i < 4; $i++) $size /= 1024;
-	return round($size, 2).$units[$i];
-}
+    /**
+     * Format bytes
+     *
+     * @param string $subject
+     */
+    function format_bytes($size) {
+        $units = array(' B', ' KB', ' MB', ' GB', ' TB');
+        for ($i = 0; $size >= 1024 && $i < 4; $i++) $size /= 1024;
+        return round($size, 2).$units[$i];
+    }
 
-/**********************
- *** date functions ***
- **********************/
+    /**********************
+     *** date functions ***
+     **********************/
 
 	# function : parse a date
 	function date_parse_format($format, $date, $newformat = 'c') {
@@ -625,307 +670,336 @@ function format_bytes($size) {
 		return $date;
 	}
 
-/*********************
- *** dom functions ***
- *********************/
-//debug(simplexml_import_dom($parent)->asXML(), true);
+    /*********************
+     *** dom functions ***
+     *********************/
+    //debug(simplexml_import_dom($parent)->asXML(), true);
 
-function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $parent = null) {
-
-	if(!$dom) {
-		$dom = new DOMDocument('1.0', 'UTF-8');
-		$dom->preserveWhiteSpace = false;
-		$dom->formatOutput = true;
+    /**
+     * Execute queries & return content
+     *
+     * @param DOMXPath $xpath
+     * @param mixed $query
+     * @return array $options
+     */
+	function query_xpath(DOMXPath $xpath, $query = null, $options = array()) {
+		if(!is_array($query)) $query = array($query);
+		foreach($query as $k => &$v) {
+			if($node = $xpath->query($v)->item(0)) {
+				$v = trim(!empty($options['decode']) ? utf8_decode($node->nodeValue) : $node->nodeValue);
+			} else {
+				$v = null;
+			}
+		}
+		return $query;
 	}
 
-	$parent = $parent?$parent:$dom;
+    /**
+     * Insert array into a dom, optionaly a specific parent
+     *
+     * @param array $elements
+     * @param DOMDocument $dom
+     * @return DOMElement $parent
+     */
+	function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $parent = null, $options = array()) {
 
-	foreach($elements as $key => $val) {
+        $defaults = array('force_cdata' => false);
+        $options += $defaults;
 
-		if($key === '@attributes') {
-			foreach($val as $attrKey => $attrVal) {
-				$parent->setAttribute($attrKey, $attrVal);
-			}
-		} else {
+		if(!$dom) {
+			$dom = new DOMDocument('1.0', 'UTF-8');
+			$dom->preserveWhiteSpace = false;
+			$dom->formatOutput = true;
+		}
 
-			if(is_numeric($key)) {
-				$key = '_' . $key;
-			}
+		$parent = $parent?$parent:$dom;
 
-			if(is_array($val)) {
+		foreach($elements as $key => $val) {
 
-				if(array_key_exists(0, $val)) {
-					foreach($val as $v) {
+			if($key === '@attributes') {
+				foreach($val as $attrKey => $attrVal) {
+					$parent->setAttribute($attrKey, $attrVal);
+				}
+			} else {
+
+				if(is_numeric($key)) {
+					$key = '_' . $key;
+				}
+
+				if(is_array($val)) {
+
+					if(array_key_exists(0, $val)) {
+						foreach($val as $v) {
+							$key_element = $dom->createElement($key);
+							$parent->appendChild($key_element);
+							dom_insert($v, $dom, $key_element);
+						}
+					} else {
 						$key_element = $dom->createElement($key);
 						$parent->appendChild($key_element);
-						dom_insert($v, $dom, $key_element);
+						dom_insert($val, $dom, $key_element);
 					}
+
 				} else {
 					$key_element = $dom->createElement($key);
-					$parent->appendChild($key_element);
-					dom_insert($val, $dom, $key_element);
+					$element = $parent->appendChild($key_element);
+
+					if($options['force_cdata'] || preg_match('/[&<>]/i', $val)) {
+						$element->appendChild($dom->createCDATASection($val));
+					} else {
+						$key_element->nodeValue = $val;
+					}
 				}
 
-			} else {
-				$key_element = $dom->createElement($key);
-				$element = $parent->appendChild($key_element);
-
-				if(preg_match('/[&<>]/i', $val)) {
-					$element->appendChild($dom->createCDATASection($val));
-				} else {
-					$key_element->nodeValue = $val;
-				}
 			}
 
 		}
 
+		return $dom;
 	}
 
-	return $dom;
-}
+    function tail($file, $numLines = 1000)
+    {
+        $fp = fopen($file, "r");
+        $chunk = 4096;
+        $fs = sprintf("%u", filesize($file));
+        $max = (intval($fs) == PHP_INT_MAX) ? PHP_INT_MAX : filesize($file);
+        $data = null;
 
-function tail($file, $numLines = 1000)
-{
-    $fp = fopen($file, "r");
-    $chunk = 4096;
-    $fs = sprintf("%u", filesize($file));
-    $max = (intval($fs) == PHP_INT_MAX) ? PHP_INT_MAX : filesize($file);
-	$data = null;
+        for ($len = 0; $len < $max; $len += $chunk) {
+            $seekSize = ($max - $len > $chunk) ? $chunk : $max - $len;
 
-    for ($len = 0; $len < $max; $len += $chunk) {
-        $seekSize = ($max - $len > $chunk) ? $chunk : $max - $len;
+            fseek($fp, ($len + $seekSize) * -1, SEEK_END);
+            $data = fread($fp, $seekSize) . $data;
 
-        fseek($fp, ($len + $seekSize) * -1, SEEK_END);
-        $data = fread($fp, $seekSize) . $data;
+            if (substr_count($data, "\n") >= $numLines + 1) {
+                preg_match("!(.*?\n){".($numLines)."}$!", $data, $match);
+                fclose($fp);
+                return $match[0];
+            }
+        }
+        fclose($fp);
+        return $data;
+    }
 
-        if (substr_count($data, "\n") >= $numLines + 1) {
-            preg_match("!(.*?\n){".($numLines)."}$!", $data, $match);
-            fclose($fp);
-            return $match[0];
+    function tail2($file, $num_to_get=1000)
+    {
+        $fp = fopen($file, 'r');
+        $position = filesize($file);
+        fseek($fp, $position-1);
+        $chunklen = 4096;
+        $data = null;
+        while($position >= 0)
+        {
+            $position = $position - $chunklen;
+            if ($position < 0) { $chunklen = abs($position); $position=0;}
+            fseek($fp, $position);
+            $data = fread($fp, $chunklen) . $data;
+            if (substr_count($data, "\n") >= $num_to_get + 1)
+            {
+                preg_match("!(.*?\n){".($num_to_get-1)."}$!", $data, $match);
+                return $match[0];
+            }
+        }
+        fclose($fp);
+        return $data;
+    }
+
+    /**********************
+     *** curl functions ***
+     **********************/
+
+    function curl_file_get_contents($url, $timeout = 10) {
+        $ch = curl_init($url);
+
+        curl_setopt_array($ch, array(
+                                     CURLOPT_TIMEOUT => $timeout,
+                                     CURLOPT_CONNECTTIMEOUT => $timeout,
+
+                                     CURLOPT_RETURNTRANSFER => true,
+                                     //CURLOPT_FOLLOWLOCATION => true,
+                                     //CURLOPT_UNRESTRICTED_AUTH => true,
+                                     //CURLOPT_AUTOREFERER => true,
+
+                                     CURLOPT_SSL_VERIFYHOST => false,
+                                     CURLOPT_SSL_VERIFYPEER => false,
+                                     ));
+
+        $ret = curl_exec($ch);
+        curl_close($ch);
+
+        if ($ret) return $ret;
+		else return false;
+    }
+
+    function curl_ftp_list2($url, $timeout = 10) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_FTPLISTONLY, TRUE);
+        $ret = curl_exec($ch);
+        curl_close($ch);
+        if ($ret === FALSE) {
+            return FALSE;
+        } else {
+            return preg_split('/[\r\n]+/', $ret, -1, PREG_SPLIT_NO_EMPTY);
         }
     }
-    fclose($fp);
-    return $data;
-}
 
-function tail2($file, $num_to_get=1000)
-{
-  $fp = fopen($file, 'r');
-  $position = filesize($file);
-  fseek($fp, $position-1);
-  $chunklen = 4096;
-  $data = null;
-  while($position >= 0)
-  {
-    $position = $position - $chunklen;
-    if ($position < 0) { $chunklen = abs($position); $position=0;}
-    fseek($fp, $position);
-    $data = fread($fp, $chunklen) . $data;
-    if (substr_count($data, "\n") >= $num_to_get + 1)
-    {
-       preg_match("!(.*?\n){".($num_to_get-1)."}$!", $data, $match);
-       return $match[0];
+    function curl_ftp_list($url, $timeout = 10) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
+        $ret = curl_exec($ch);
+        echo curl_error($ch);
+        curl_close($ch);
+        if ($ret === FALSE) {
+            return FALSE;
+        } else {
+            $fichiers = array();
+            $nbFichiers = 0;
+            if (preg_match_all('/([-dl])([rwxst-]{9})[ ]+([0-9]+)[ ]+([^ ]+)[ ]+(.+)[ ]+([0-9]+)[ ]+([a-zA-Z]+[ ]+[0-9]+)[ ]+([0-9:]+)[ ]+(.*)/', $ret, $m, PREG_SET_ORDER)) {
+                foreach ($m as $f) {
+                    $fichiers[$nbFichiers] = array();
+                    $fichiers[$nbFichiers]['dir']         = $f[1] == 'd';  // RÃ©pertoire ?
+                    $fichiers[$nbFichiers]['filename']    = $f[9];         // Nom
+                    $fichiers[$nbFichiers]['size']        = $f[6];         // Taille
+                    $fichiers[$nbFichiers]['owner']       = $f[4];         // PropriÃ©taire
+                    $fichiers[$nbFichiers]['group']       = $f[5];         // Groupe
+                    $fichiers[$nbFichiers]['permissions'] = $f[2];         // Permissions
+                    $fichiers[$nbFichiers]['mtime']       = "$f[7] $f[8]"; // Date de derniÃ¨re modification
+                    $nbFichiers++;
+                }
+            }
+            return $fichiers;
+        }
     }
-  }
-  fclose($fp);
-  return $data;
-}
 
-/**********************
- *** curl functions ***
- **********************/
+    function curl_ftp_put($url, $nom_local, $mode_ascii = FALSE, $chmod = FALSE) {
+        $ret = FALSE;
 
-function curl_file_get_contents($url, $timeout = 10) {
-	$ch = curl_init($url);
+        if (is_file($nom_local)) {
+            $fp = fopen($nom_local, 'r');
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_INFILE, $fp);
+            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($nom_local));
+            curl_setopt($ch, CURLOPT_UPLOAD, TRUE);
+            if ($mode_ascii) {
+                curl_setopt($ch, CURLOPT_TRANSFERTEXT, TRUE);
+            }
+            if ($chmod) {
+                $path = parse_url($url, PHP_URL_PATH);
+                curl_setopt($ch, CURLOPT_POSTQUOTE, array("SITE CHMOD $chmod $path"));
+            }
+            $ret = curl_exec($ch);
+            curl_close($ch);
+            fclose($fp);
+        }
 
-	curl_setopt_array($ch, array(
-		CURLOPT_TIMEOUT => $timeout,
-		CURLOPT_CONNECTTIMEOUT => $timeout,
+        return $ret;
+    }
 
-		CURLOPT_RETURNTRANSFER => true,
-		//CURLOPT_FOLLOWLOCATION => true,
-		//CURLOPT_UNRESTRICTED_AUTH => true,
-		//CURLOPT_AUTOREFERER => true,
+    function ftp_curl_get($url, $sortie, $timeout = 10) {
+        if ($fp = fopen($sortie, 'w')) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+            $ret = curl_exec($ch);
+            curl_close($ch);
+            fclose($fp);
+            return $ret;
+        }
+        return FALSE;
+    }
 
-		CURLOPT_SSL_VERIFYHOST => false,
-		CURLOPT_SSL_VERIFYPEER => false,
-	));
+    function http_curl_get($remote, $local, $timeout = 10, $agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10") {
 
-	$ret = curl_exec($ch);
-	curl_close($ch);
+        if ($fp = fopen($local, 'w')) {
 
-	if ($ret) return $ret;
-		else return false;
-}
+            $ch = curl_init($remote);
 
-function curl_ftp_list2($url, $timeout = 10) {
-	$ch = curl_init($url);
-	curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_FTPLISTONLY, TRUE);
-	$ret = curl_exec($ch);
-	curl_close($ch);
-	if ($ret === FALSE) {
-		return FALSE;
-	} else {
-		return preg_split('/[\r\n]+/', $ret, -1, PREG_SPLIT_NO_EMPTY);
-	}
-}
+            curl_setopt_array($ch, array(
 
-function curl_ftp_list($url, $timeout = 10) {
-	$ch = curl_init($url);
-	curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
-	$ret = curl_exec($ch);
-	echo curl_error($ch);
-	curl_close($ch);
-	if ($ret === FALSE) {
-		return FALSE;
-	} else {
-		$fichiers = array();
-		$nbFichiers = 0;
-		if (preg_match_all('/([-dl])([rwxst-]{9})[ ]+([0-9]+)[ ]+([^ ]+)[ ]+(.+)[ ]+([0-9]+)[ ]+([a-zA-Z]+[ ]+[0-9]+)[ ]+([0-9:]+)[ ]+(.*)/', $ret, $m, PREG_SET_ORDER)) {
-			foreach ($m as $f) {
-				$fichiers[$nbFichiers] = array();
-				$fichiers[$nbFichiers]['dir']         = $f[1] == 'd';  // RÃ©pertoire ?
-				$fichiers[$nbFichiers]['filename']    = $f[9];         // Nom
-				$fichiers[$nbFichiers]['size']        = $f[6];         // Taille
-				$fichiers[$nbFichiers]['owner']       = $f[4];         // PropriÃ©taire
-				$fichiers[$nbFichiers]['group']       = $f[5];         // Groupe
-				$fichiers[$nbFichiers]['permissions'] = $f[2];         // Permissions
-				$fichiers[$nbFichiers]['mtime']       = "$f[7] $f[8]"; // Date de derniÃ¨re modification
-				$nbFichiers++;
-			}
-		}
-		return $fichiers;
-	}
-}
+                                         CURLOPT_USERAGENT => $agent,
+                                         CURLOPT_FILE => $fp,
 
-function curl_ftp_put($url, $nom_local, $mode_ascii = FALSE, $chmod = FALSE) {
-	$ret = FALSE;
+                                         CURLOPT_TIMEOUT => $timeout,
+                                         CURLOPT_CONNECTTIMEOUT => $timeout,
 
-	if (is_file($nom_local)) {
-		$fp = fopen($nom_local, 'r');
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_INFILE, $fp);
-		curl_setopt($ch, CURLOPT_INFILESIZE, filesize($nom_local));
-		curl_setopt($ch, CURLOPT_UPLOAD, TRUE);
-		if ($mode_ascii) {
-			curl_setopt($ch, CURLOPT_TRANSFERTEXT, TRUE);
-		}
-		if ($chmod) {
-			$path = parse_url($url, PHP_URL_PATH);
-			curl_setopt($ch, CURLOPT_POSTQUOTE, array("SITE CHMOD $chmod $path"));
-		}
-		$ret = curl_exec($ch);
-		curl_close($ch);
-		fclose($fp);
-	}
+                                         //CURLOPT_RETURNTRANSFER => false,
+                                         CURLOPT_FOLLOWLOCATION => true,
+                                         CURLOPT_UNRESTRICTED_AUTH => true,
+                                         CURLOPT_AUTOREFERER => true,
 
-	return $ret;
-}
+                                         CURLOPT_SSL_VERIFYHOST => false,
+                                         CURLOPT_SSL_VERIFYPEER => false,
 
-function ftp_curl_get($url, $sortie, $timeout = 10) {
-	if ($fp = fopen($sortie, 'w')) {
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_FILE, $fp);
-		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-		$ret = curl_exec($ch);
-		curl_close($ch);
-		fclose($fp);
-		return $ret;
-	}
-	return FALSE;
-}
+                                         ));
 
-function http_curl_get($remote, $local, $timeout = 10, $agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10") {
+            $dt = curl_exec($ch);
+            curl_close($ch);
+            fclose($fp);
 
-	if ($fp = fopen($local, 'w')) {
+            return $dt;
+        }
 
-		$ch = curl_init($remote);
-
-		curl_setopt_array($ch, array(
-
-			CURLOPT_USERAGENT => $agent,
-			CURLOPT_FILE => $fp,
-
-			CURLOPT_TIMEOUT => $timeout,
-			CURLOPT_CONNECTTIMEOUT => $timeout,
-
-			//CURLOPT_RETURNTRANSFER => false,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_UNRESTRICTED_AUTH => true,
-			CURLOPT_AUTOREFERER => true,
-
-			CURLOPT_SSL_VERIFYHOST => false,
-			CURLOPT_SSL_VERIFYPEER => false,
-
-		));
-
-		$dt = curl_exec($ch);
-		curl_close($ch);
-		fclose($fp);
-
-		return $dt;
-	}
-
-	return false;
-}
+        return false;
+    }
 
 
-function http_curl_head($remote, $timeout = 10, $agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10") {
+    function http_curl_head($remote, $timeout = 10, $agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.215 Safari/534.10") {
 
-	$ch = curl_init($remote);
+        $ch = curl_init($remote);
 
-	curl_setopt_array($ch, array(
+        curl_setopt_array($ch, array(
 
-		CURLOPT_HEADER => true,
-		CURLOPT_NOBODY => true,
+                                     CURLOPT_HEADER => true,
+                                     CURLOPT_NOBODY => true,
 
-		CURLOPT_USERAGENT => $agent,
-		CURLOPT_TIMEOUT => $timeout,
-		CURLOPT_CONNECTTIMEOUT => $timeout,
+                                     CURLOPT_USERAGENT => $agent,
+                                     CURLOPT_TIMEOUT => $timeout,
+                                     CURLOPT_CONNECTTIMEOUT => $timeout,
 
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_FOLLOWLOCATION => true,
-		CURLOPT_UNRESTRICTED_AUTH => true,
-		CURLOPT_AUTOREFERER => true,
+                                     CURLOPT_RETURNTRANSFER => true,
+                                     CURLOPT_FOLLOWLOCATION => true,
+                                     CURLOPT_UNRESTRICTED_AUTH => true,
+                                     CURLOPT_AUTOREFERER => true,
 
-		CURLOPT_SSL_VERIFYHOST => false,
-		CURLOPT_SSL_VERIFYPEER => false,
+                                     CURLOPT_SSL_VERIFYHOST => false,
+                                     CURLOPT_SSL_VERIFYPEER => false,
 
-	));
+                                     ));
 
-	$data = curl_exec($ch);
-	curl_close($ch);
-	if (!$data) return false;
+        $data = curl_exec($ch);
+        curl_close($ch);
+        if (!$data) return false;
 
-	$data = array_filter(explode("\n", $data));
-	$http = array();
+        $data = array_filter(explode("\n", $data));
+        $http = array();
 
-	foreach($data as $v) {
-		$v = explode(': ', $v);
-		if(!empty($v[1])) $http[$v[0]] = $v[1];
-		elseif(!empty($v[0])) {
-			if(preg_match('/^HTTP\/1\.[01] (\d\d\d)/', $v[0], $matches)) {
-				$http['Header'] = $v[0];
-				$http['Status-Code'] = (int)$matches[1];
-			}
-		}
-	}
+        foreach($data as $v) {
+            $v = explode(': ', $v);
+            if(!empty($v[1])) $http[$v[0]] = $v[1];
+            elseif(!empty($v[0])) {
+                if(preg_match('/^HTTP\/1\.[01] (\d\d\d)/', $v[0], $matches)) {
+                    $http['Header'] = $v[0];
+                    $http['Status-Code'] = (int)$matches[1];
+                }
+            }
+        }
 
-	return $http;
-}
+        return $http;
+    }
 
-function http_curl_size($remote, $timeout = null, $agent = null) {
+    function http_curl_size($remote, $timeout = null, $agent = null) {
 
-	$head = http_curl_head($remote, $timeout, $agent);
-	return !empty($head['Content-Length']) ? $head['Content-Length'] : false;
+        $head = http_curl_head($remote, $timeout, $agent);
+        return !empty($head['Content-Length']) ? $head['Content-Length'] : false;
 
-}
+    }
 
-?>
+    ?>

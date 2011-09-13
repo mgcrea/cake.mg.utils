@@ -51,11 +51,13 @@ class MgController extends Controller {
  * @access public
  */
 	function loadComponent($component, $options = array()) {
-		App::import('Component', $component, $options);
-		list($plugin, $component) = pluginSplit($component);
-		$class = $component . 'Component';
-		$this->{$component} = new $class();
-		$this->{$component}->initialize($this);
+		if(App::import('Component', $component, $options)) {
+			list($plugin, $component) = pluginSplit($component);
+			$class = $component . 'Component';
+			$this->{$component} = new $class();
+			return $this->{$component}->initialize($this);
+		}
+		return false;
 	}
 
 	function overrideViewFromPlugin($plugin = null) {
@@ -66,7 +68,7 @@ class MgController extends Controller {
 		}
 	}
 
-	function renderJson($action = null, $result = null, $return = false) {
+	/*function renderJson($action = null, $result = null, $return = false) {
 
 		if(is_string($result)) $result = array('info' => $result);
 		if(is_numeric($action) && empty($result['status_code'])) $result['status_code'] = $action;
@@ -94,7 +96,7 @@ class MgController extends Controller {
 		$this->set(compact('result'));
 		return $this->render('/layouts/json', 'ajax');
 
-	}
+	}*/
 
 	function clearCache() {
 

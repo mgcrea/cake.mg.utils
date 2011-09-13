@@ -63,7 +63,7 @@ class MgFormHelper extends FormHelper {
 			}
 
 		} else if($options['type'] == 'checkbox') {
-			foreach($options['options'] as $for => &$option) $option = $this->MgHtml->link($option, '#', array('ui' => "button trigger-checkbox", 'overlay' => true, 'escape' => false));
+			foreach($options['options'] as $for => &$option) $option = $this->MgHtml->span(null, 'ui-icon') . $this->MgHtml->span($option, 'ui-text'); //$this->MgHtml->link($option, '#', array('ui' => "button trigger-checkbox", 'overlay' => true, 'escape' => false));
 			if(!empty($options['legend'])) $options['label'] = $options['legend']; unset($options['legend']);
 			$options = array_merge($options, array('escape' => false, 'type' => 'select', 'multiple' => 'checkbox'));
 		}
@@ -91,7 +91,8 @@ class MgFormHelper extends FormHelper {
 			'text' => null,
 			'class' => null,
 			'disabled' => false,
-			'colorize' => false
+			'colorize' => false,
+			'escape' => false
 		);
 		$options = array_merge($defaults, $options);
 
@@ -102,22 +103,82 @@ class MgFormHelper extends FormHelper {
 
 	function button($content = null, $options = array()) {
 
-		$inputOptions = !empty($options['input']) ? $options['input'] : array('class' => null);
-		$inputOptions['class'] .= 'ui-button-text' . (!empty($options['text']) ? ' ' . $options['text'] : null);
-		unset($options['input'], $options['text']);
+		/*$inputOptions = !empty($options['input']) ? $options['input'] : array('class' => null);
+		$inputOptions['class'] .= 'ui-text ui-button-text' . (!empty($options['text']) ? ' ' . $options['text'] : null);
+		unset($options['input'], $options['text']);*/
 
-		return $this->MgHtml->div($this->Html->tag('input', null, array_merge($inputOptions, array('type' => "button", 'value' => $content))), $options);
+		$action = !empty($options['type']) ? $options['type'] : '#';
+		unset($options['type']);
+
+		//return $this->MgHtml->div($this->Html->tag('input', null, array_merge($inputOptions, array('type' => "button", 'value' => $content))), $options);
+		return $this->MgHtml->link($content, $action, $options);
 
 	}
 
 	function submit($content = null, $options = array()) {
 
 		$inputOptions = !empty($options['input']) ? $options['input'] : array('class' => null);
-		$inputOptions['class'] .= 'ui-button-text' . (!empty($options['text']) ? ' ' . $options['text'] : null);
+		$inputOptions['class'] .= 'ui-text ui-button-text' . (!empty($options['text']) ? ' ' . $options['text'] : null);
 		unset($options['input'], $options['text']);
 
 		return $this->MgHtml->div($this->Html->tag('input', null, array_merge($inputOptions, array('type' => "submit", 'value' => $content))), $options);
 
+	}
+
+	function checkbox($name = null, $options = array()) {
+		if(!$name) return false;
+
+		$defaults = array(
+			'role' => 'input',
+			'type' => 'checkbox',
+			'multiple' => 'checkbox',
+			'aria-disabled' => 'false',
+			'div' => null,
+			'class' => null,
+			'size' => null,
+			'data' => array(),
+			'ui' => array(),
+			'options' => array(),
+			'before' => null,
+			'between' => null,
+			'after' => null
+		);
+		$options = array_merge($defaults, $options);
+
+		foreach($options['options'] as &$option) {
+			if(is_array($option)) {
+				foreach($option as &$subOption) {
+					$subOption = $this->MgHtml->span(null, 'ui-icon') . $this->MgHtml->span($subOption, 'ui-text');
+				}
+			} else {
+				$option = $this->MgHtml->span(null, 'ui-icon') . $this->MgHtml->span($option, 'ui-text');
+			}
+		}
+		// generic preProcess
+		$this->_preProcess($name, $options);
+
+		if(!empty($options['legend'])) $options['label'] = $options['legend']; unset($options['legend']);
+
+		// patch to handle editing
+		if((!isset($options['multiple']) || !$options['multiple']) && (!isset($options['default']) || !$options['default'])) {
+
+			if(strpos($name, '.')) $selected = Set::classicExtract($this->view->data, $name);
+			else $selected = Set::classicExtract($this->view->data, $this->Form->model() . '.' . $name);
+
+			if($selected) {
+				if(!is_array($options['label'])) $options['label'] = array('class' => "selected", 'text' => $options['label']);
+				else $options['label']['class'] = (isset($options['label']['class'])?$options['label']['class'].' ':'') . "selected";
+			}
+
+		}
+
+		// generic postProcess
+		$this->_postProcess($name, $options);
+
+		// specific postProcess
+		$options = array_merge($options, array('escape' => false, 'type' => 'select', 'multiple' => 'checkbox'));
+
+		return parent::input($name, $options);
 	}
 
 	function end($content = null, $options = array()) {
@@ -216,55 +277,7 @@ class MgFormHelper extends FormHelper {
 
 	}
 
-	function checkbox($name = null, $options = array()) {
-		if(!$name) return false;
 
-		$defaults = array(
-			'role' => 'input',
-			'type' => 'checkbox',
-			'multiple' => 'checkbox',
-			'aria-disabled' => 'false',
-			'div' => null,
-			'class' => null,
-			'size' => null,
-			'data' => array(),
-			'ui' => array(),
-			'options' => array(),
-			'before' => null,
-			'between' => null,
-			'after' => null
-		);
-		$options = array_merge($defaults, $options);
-
-		foreach($options['options'] as &$option) $option = $this->MgHtml->link($option, '#', array('class' => "ui-trigger-checkbox", 'ui' => "button", 'overlay' => true, 'escape' => false));
-
-		# generic preProcess
-		$this->_preProcess($name, $options);
-
-		if(!empty($options['legend'])) $options['label'] = $options['legend']; unset($options['legend']);
-
-		//if(!empty($options['label'])) $options['legend'] = $options['label']; unset($options['label']);
-
-		/*if((!isset($options['multiple']) || !$options['multiple']) && (!isset($options['default']) || !$options['default'])) {
-
-			if(strpos($name, '.')) $selected = Set::classicExtract($this->view->data, $name);
-			else $selected = Set::classicExtract($this->view->data, $this->Form->model() . '.' . $name);
-
-			if($selected) {
-				if(!is_array($options['label'])) $options['label'] = array('class' => "selected", 'text' => $options['label']);
-				else $options['label']['class'] = (isset($options['label']['class'])?$options['label']['class'].' ':'') . "selected";
-			}
-
-		}
-
-		# generic postProcess
-		$this->_postProcess($name, $options);
-
-		# specific postProcess
-		$options = array_merge($options, array('escape' => false, 'type' => 'select', 'multiple' => 'checkbox'));
-
-		return parent::input($name, $options);
-	}
 
 	function checkboxOld($name = null, $options = array()) {
 		if(!$name) return false;

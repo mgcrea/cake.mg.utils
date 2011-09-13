@@ -205,6 +205,13 @@ class MgHtmlHelper extends HtmlHelper {
 		return parent::tag('h3', $content, $options);
 	}
 
+	function hr($content = null, $options = null) {
+		// generic preProcess
+		$this->_preProcess($content, $options);
+
+		return parent::tag('hr', $content, $options);
+	}
+
 	function video($content = null, $options) {
 		//if(is_string($options)) $options = array('src' => $options);
 
@@ -294,6 +301,8 @@ class MgHtmlHelper extends HtmlHelper {
 		if(is_string($action)) {
 			if($action[0] == "#" && strlen($action) > 1) {
 				$class .= ' ui-action-' . substr($action, 1);
+			} elseif(!strpos($action, '/')) {
+				$class .= ' ui-action-' . $action;
 			}
 		} elseif(is_array($action)) {
 			if(!empty($action['controller'])) {
