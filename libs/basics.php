@@ -694,17 +694,33 @@
 		return $query;
 	}
 
-    /**
-     * Insert array into a dom, optionaly a specific parent
-     *
-     * @param array $elements
-     * @param DOMDocument $dom
-     * @return DOMElement $parent
-     */
-	function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $parent = null, $options = array()) {
+/**
+ * Execute queries & return content
+ *
+ * @param DOMXPath $xpath
+ * @param mixed $query
+ * @return array $options
+ */
+	function query_xpath(DOMXPath $xpath, $query = null, $options = array()) {
+		if(!is_array($query)) $query = array($query);
+		foreach($query as $k => &$v) {
+			if($node = $xpath->query($v)->item(0)) {
+				else $v = trim(!empty($options['decode']) ? utf8_decode($node->nodeValue) : $node->nodeValue);
+			} else {
+				$v = null;
+			}
+		}
+		return $query;
+	}
 
-        $defaults = array('force_cdata' => false);
-        $options += $defaults;
+/**
+ * Insert array into a dom, optionaly a specific parent
+ *
+ * @param array $elements
+ * @param DOMDocument $dom
+ * @return DOMElement $parent
+ */
+	function dom_insert($elements = array(), DOMDocument $dom = null, DOMElement $parent = null) {
 
 		if(!$dom) {
 			$dom = new DOMDocument('1.0', 'UTF-8');
